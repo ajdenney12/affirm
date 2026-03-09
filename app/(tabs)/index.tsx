@@ -109,7 +109,7 @@ export default function AffirmationsScreen() {
         text: 'Logout',
         onPress: async () => {
           await supabase.auth.signOut();
-          router.replace('/(auth)/login');
+          router.replace('/auth/login');
         },
       },
     ]);

@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  Modal,
-  StyleSheet,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '../../lib/supabase';
-import { useRouter } from 'expo-router';
+import { supabase } from '../../../lib/supabase';
 
 export default function LoginScreen() {
   const router = useRouter();
