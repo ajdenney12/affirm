@@ -1,200 +1,260 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Alert,
-  Modal,
+  View,
+  Text,
+  TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Text,
+  Alert,
+  Modal,
   TextInput,
-  TouchableOpacity,
-  View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
+interface ThemeGroup {
+  theme: string;
+  icon: string;
+  gradient: string[];
+  affirmations: any[];
+}
+
 export default function AffirmationsScreen() {
-  const router = useRouter();
   const [affirmations, setAffirmations] = useState<any[]>([]);
-  const [inputText, setInputText] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [dailyAffirmation, setDailyAffirmation] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editText, setEditText] = useState('');
+  const [newAffirmationText, setNewAffirmationText] = useState('');
 
   useEffect(() => {
-    loadAffirmations();
+    loadData();
   }, []);
 
-  const loadAffirmations = async () => {
+  const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const affirmationsResult = await supabase
         .from('affirmations')
         .select('*')
         .eq('user_id', user.id)
         .order('timestamp', { ascending: false });
 
-      if (error) throw error;
-      setAffirmations(data || []);
+      if (affirmationsResult.error) throw affirmationsResult.error;
+
+      setAffirmations(affirmationsResult.data || []);
+
+      if (affirmationsResult.data && affirmationsResult.data.length > 0) {
+        const randomIndex = Math.floor(Math.random() * affirmationsResult.data.length);
+        setDailyAffirmation(affirmationsResult.data[randomIndex]);
+      }
     } catch (error: any) {
-      console.error('Error loading affirmations:', error);
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAdd = async () => {
-    if (!inputText.trim()) {
+  const handleDeleteAffirmation = async (id: string) => {
+    Alert.alert('Delete Affirmation', 'Are you sure you want to delete this affirmation?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const { error } = await supabase.from('affirmations').delete().eq('id', id);
+            if (error) throw error;
+            await loadData();
+          } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to delete affirmation');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleEditAffirmation = (affirmation: any) => {
+    setEditingItem(affirmation);
+    setEditText(affirmation.text);
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editText.trim()) {
+      Alert.alert('Error', 'Please enter some text');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('affirmations')
+        .update({ text: editText.trim() })
+        .eq('id', editingItem.id);
+      if (error) throw error;
+
+      setEditModalVisible(false);
+      setEditingItem(null);
+      setEditText('');
+      await loadData();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to save changes');
+    }
+  };
+
+  const handleAddAffirmation = async () => {
+    if (!newAffirmationText.trim()) {
       Alert.alert('Error', 'Please enter an affirmation');
       return;
     }
 
-    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
         .from('affirmations')
-        .insert([
-          {
-            user_id: user.id,
-            text: inputText.trim(),
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-
+        .insert({
+          user_id: user.id,
+          text: newAffirmationText.trim(),
+          timestamp: new Date().toISOString(),
+        });
       if (error) throw error;
 
-      setInputText('');
-      await loadAffirmations();
+      setNewAffirmationText('');
+      await loadData();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to add affirmation');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    Alert.alert(
-      'Delete Affirmation',
-      'Are you sure you want to delete this affirmation?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { error } = await supabase
-                .from('affirmations')
-                .delete()
-                .eq('id', id);
-
-              if (error) throw error;
-              await loadAffirmations();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete affirmation');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        onPress: async () => {
-          await supabase.auth.signOut();
-          router.replace('/auth/login');
-        },
-      },
-    ]);
-  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient colors={['#E0E7FF', '#FECDD3']} style={styles.gradient}>
+      <LinearGradient colors={['#E9D5FF', '#FECDD3']} style={styles.gradient}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>NextSelf</Text>
-            <Text style={styles.subtitle}>Daily Affirmations</Text>
+            <Text style={styles.title}>My Affirmations</Text>
+            <Text style={styles.subtitle}>Empowering thoughts for your journey</Text>
           </View>
-          <TouchableOpacity onPress={() => setShowSettings(true)} style={styles.settingsButton}>
-            <Text style={styles.settingsIcon}>⚙️</Text>
-          </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Write your affirmation..."
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAdd}
-            disabled={loading || !inputText.trim()}
-          >
-            <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.addButtonGradient}>
-              <Text style={styles.addButtonText}>Add</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {affirmations.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>⭐</Text>
-              <Text style={styles.emptyText}>No affirmations yet</Text>
-              <Text style={styles.emptySubtext}>Create your first affirmation above</Text>
+              <Text style={styles.emptyIcon}>✨</Text>
+              <Text style={styles.emptyText}>Start Your Journey</Text>
+              <Text style={styles.emptySubtext}>
+                Create your first affirmation below
+              </Text>
             </View>
           ) : (
-            affirmations.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.cardText}>{item.text}</Text>
-                <View style={styles.cardFooter}>
-                  <Text style={styles.cardDate}>
-                    {new Date(item.timestamp).toLocaleDateString()}
-                  </Text>
-                  <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                    <Text style={styles.deleteIcon}>🗑️</Text>
+            affirmations.map((affirmation) => (
+              <View key={affirmation.id} style={styles.affirmationCard}>
+                <View style={styles.affirmationContent}>
+                  <Text style={styles.sparkleIcon}>✨</Text>
+                  <Text style={styles.affirmationText}>{affirmation.text}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteAffirmation(affirmation.id)}
+                    style={styles.trashIcon}
+                  >
+                    <Text style={styles.trashIconText}>🗑️</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))
           )}
-        </ScrollView>
 
-        <Modal
-          visible={showSettings}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowSettings(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Settings</Text>
-
-              <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-                <Text style={styles.menuIcon}>🚪</Text>
-                <Text style={styles.menuText}>Logout</Text>
-              </TouchableOpacity>
-
+          <View style={styles.addSection}>
+            <Text style={styles.addSectionTitle}>Write Your Affirmation</Text>
+            <View style={styles.addInputContainer}>
+              <TextInput
+                style={styles.addInput}
+                value={newAffirmationText}
+                onChangeText={setNewAffirmationText}
+                placeholder="I am confident and capable..."
+                placeholderTextColor="#C4B5FD"
+                multiline
+                maxLength={500}
+              />
               <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setShowSettings(false)}
+                style={[styles.addButton, !newAffirmationText.trim() && styles.addButtonDisabled]}
+                onPress={handleAddAffirmation}
+                disabled={!newAffirmationText.trim()}
               >
-                <Text style={styles.closeButtonText}>Close</Text>
+                <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.addButtonGradient}>
+                  <Text style={styles.addButtonText}>+ Add</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
+        </ScrollView>
+
+        <Modal
+          visible={editModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalOverlay}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.modalOverlay}
+              onPress={() => setEditModalVisible(false)}
+            >
+              <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Edit Affirmation</Text>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Affirmation Text</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      value={editText}
+                      onChangeText={setEditText}
+                      placeholder="Enter affirmation"
+                      multiline
+                      maxLength={500}
+                    />
+                  </View>
+
+                  <View style={styles.modalButtons}>
+                    <TouchableOpacity
+                      style={styles.modalButtonCancel}
+                      onPress={() => {
+                        setEditModalVisible(false);
+                        setEditingItem(null);
+                        setEditText('');
+                      }}
+                    >
+                      <Text style={styles.modalButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.modalButtonConfirm}
+                      onPress={handleSaveEdit}
+                    >
+                      <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.buttonGradient}>
+                        <Text style={styles.buttonText}>Save</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
         </Modal>
       </LinearGradient>
     </SafeAreaView>
@@ -209,103 +269,128 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 20,
+    paddingBottom: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#7C3AED',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#A855F7',
+    marginTop: 4,
   },
-  settingsButton: {
-    padding: 8,
-  },
-  settingsIcon: {
-    fontSize: 24,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    padding: 20,
-    gap: 12,
-  },
-  input: {
+  scrollView: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    maxHeight: 120,
   },
-  addButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  addButtonGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    justifyContent: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  list: {
-    flex: 1,
+  scrollContent: {
     paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   emptyState: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 80,
+    paddingHorizontal: 40,
+    marginBottom: 40,
   },
   emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 72,
+    marginBottom: 20,
   },
   emptyText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#7C3AED',
+    marginBottom: 12,
   },
   emptySubtext: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#A855F7',
+    textAlign: 'center',
+    lineHeight: 24,
   },
-  card: {
+  affirmationCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
-  cardText: {
-    fontSize: 16,
-    color: '#1F2937',
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  cardFooter: {
+  affirmationContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cardDate: {
-    fontSize: 12,
-    color: '#9CA3AF',
+  sparkleIcon: {
+    fontSize: 24,
+    marginRight: 12,
   },
-  deleteIcon: {
+  affirmationText: {
+    flex: 1,
     fontSize: 20,
+    fontStyle: 'italic',
+    color: '#8B5CF6',
+    lineHeight: 28,
+  },
+  trashIcon: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  trashIconText: {
+    fontSize: 20,
+  },
+  addSection: {
+    marginTop: 24,
+  },
+  addSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#7C3AED',
+    marginBottom: 12,
+  },
+  addInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  addInput: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    color: '#7C3AED',
+    minHeight: 60,
+    maxHeight: 120,
+    textAlignVertical: 'top',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  addButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  addButtonDisabled: {
+    opacity: 0.5,
+  },
+  addButtonGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
@@ -322,36 +407,60 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#7C3AED',
     marginBottom: 24,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    marginBottom: 12,
+  inputGroup: {
+    marginBottom: 16,
   },
-  menuIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  menuText: {
-    fontSize: 16,
-    color: '#1F2937',
+  label: {
+    fontSize: 14,
     fontWeight: '500',
+    color: '#7C3AED',
+    marginBottom: 8,
   },
-  closeButton: {
-    marginTop: 16,
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: '#7C3AED',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButtonCancel: {
+    flex: 1,
     padding: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(233, 213, 255, 0.5)',
     borderRadius: 12,
     alignItems: 'center',
   },
-  closeButtonText: {
+  modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#7C3AED',
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

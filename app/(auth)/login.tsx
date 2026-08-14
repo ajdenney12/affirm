@@ -1,19 +1,19 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  Modal,
+  StyleSheet,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
+import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -24,26 +24,39 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [showDisclaimers, setShowDisclaimers] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+    const handleLogin = async () => {
+      console.log('LOGIN BUTTON PRESSED');
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!email || !password) {
+        Alert.alert('Error', 'Please fill in all fields');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+
+        if (error) {
+          console.error('LOGIN ERROR:', error);
+          throw error;
+        }
+
+        console.log('LOGIN SUCCESS:', data.user?.email);
+
+        router.replace('/(tabs)');
+      } catch (error: any) {
+        console.error('LOGIN FAILED:', error);
+        Alert.alert('Login Error', error.message || 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleSignUp = async () => {
     if (!ageConfirmed) {
@@ -106,14 +119,14 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <LinearGradient
-        colors={['#DBEAFE', '#FFFFFF', '#FCE7F3']}
+        colors={['#E9D5FF', '#FFFFFF', '#FECDD3']}
         style={styles.gradient}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <LinearGradient
-                colors={['#3B82F6', '#EC4899']}
+                colors={['#8B5CF6', '#EC4899']}
                 style={styles.icon}
               >
                 <Text style={styles.iconText}>✨</Text>
@@ -182,7 +195,7 @@ export default function LoginScreen() {
                     disabled={loading}
                   >
                     <LinearGradient
-                      colors={['#3B82F6', '#EC4899']}
+                      colors={['#8B5CF6', '#EC4899']}
                       style={styles.buttonGradient}
                     >
                       <Text style={styles.buttonText}>
@@ -202,6 +215,13 @@ export default function LoginScreen() {
                       {isLogin ? 'Sign up' : 'Login'}
                     </Text>
                   </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowDisclaimers(true)}
+                  style={styles.disclaimerLink}
+                >
+                  <Text style={styles.disclaimerLinkText}>View Disclaimers</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -231,7 +251,7 @@ export default function LoginScreen() {
                     disabled={loading}
                   >
                     <LinearGradient
-                      colors={['#3B82F6', '#EC4899']}
+                      colors={['#8B5CF6', '#EC4899']}
                       style={styles.buttonGradient}
                     >
                       <Text style={styles.buttonText}>
@@ -268,6 +288,16 @@ export default function LoginScreen() {
                 In accordance with our Terms of Service, you must be at least 13 years old to create an account and use NextSelf.
               </Text>
 
+              <TouchableOpacity
+                style={styles.disclaimerButton}
+                onPress={() => {
+                  setShowAgeVerification(false);
+                  setShowDisclaimers(true);
+                }}
+              >
+                <Text style={styles.disclaimerButtonText}>View Disclaimers</Text>
+              </TouchableOpacity>
+
               <View style={styles.checkboxContainer}>
                 <TouchableOpacity
                   style={styles.checkbox}
@@ -299,7 +329,7 @@ export default function LoginScreen() {
                   disabled={!ageConfirmed || loading}
                 >
                   <LinearGradient
-                    colors={['#3B82F6', '#EC4899']}
+                    colors={['#8B5CF6', '#EC4899']}
                     style={styles.buttonGradient}
                   >
                     <Text style={styles.buttonText}>
@@ -308,6 +338,63 @@ export default function LoginScreen() {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showDisclaimers}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowDisclaimers(false)}
+        >
+          <View style={styles.disclaimerModalOverlay}>
+            <View style={styles.disclaimerModalContent}>
+              <View style={styles.disclaimerModalHeader}>
+                <Text style={styles.disclaimerModalTitle}>Disclaimers</Text>
+                <TouchableOpacity onPress={() => setShowDisclaimers(false)}>
+                  <Text style={styles.disclaimerModalClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.disclaimerModalBody} showsVerticalScrollIndicator={false}>
+                <View style={styles.disclaimerSection}>
+                  <Text style={styles.disclaimerTitle}>General Disclaimer</Text>
+                  <Text style={styles.disclaimerText}>
+                    NextSelf is designed for personal growth and motivational purposes only. The content, affirmations, and goal-tracking features provided are not a substitute for professional medical, psychological, or mental health advice, diagnosis, or treatment.
+                  </Text>
+                </View>
+
+                <View style={styles.disclaimerSection}>
+                  <Text style={styles.disclaimerTitle}>Mental Health Disclaimer</Text>
+                  <Text style={styles.disclaimerText}>
+                    This app is not a mental health service and is not intended to diagnose, treat, cure, or prevent any mental health condition or disorder. If you are experiencing a mental health crisis or emergency, please contact a licensed mental health professional or call 988 (Suicide & Crisis Lifeline) immediately.
+                  </Text>
+                </View>
+
+                <View style={styles.disclaimerSection}>
+                  <Text style={styles.disclaimerTitle}>Medical Disclaimer</Text>
+                  <Text style={styles.disclaimerText}>
+                    Nothing in this app constitutes medical advice. Always seek the guidance of a qualified healthcare provider before making any changes to your health, wellness, or lifestyle routine. Never disregard professional medical advice because of something you read or experience in this app.
+                  </Text>
+                </View>
+
+                <View style={styles.disclaimerSection}>
+                  <Text style={styles.disclaimerTitle}>General Liability</Text>
+                  <Text style={styles.disclaimerText}>
+                    By using NextSelf you acknowledge that results may vary and that Anthropic and the app developer are not liable for any decisions made based on content within this app. Use of this app is at your own discretion and risk.
+                  </Text>
+                </View>
+              </ScrollView>
+
+              <TouchableOpacity
+                style={styles.disclaimerModalButton}
+                onPress={() => setShowDisclaimers(false)}
+              >
+                <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.buttonGradient}>
+                  <Text style={styles.buttonText}>Close</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
@@ -348,12 +435,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#7C3AED',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#A855F7',
     textAlign: 'center',
   },
   card: {
@@ -368,7 +455,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(233, 213, 255, 0.3)',
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -390,10 +477,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#A855F7',
   },
   tabTextActive: {
-    color: '#1F2937',
+    color: '#7C3AED',
   },
   form: {
     gap: 16,
@@ -404,12 +491,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#7C3AED',
   },
   input: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E9D5FF',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -421,7 +508,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#3B82F6',
+    color: '#8B5CF6',
   },
   button: {
     borderRadius: 12,
@@ -443,21 +530,21 @@ const styles = StyleSheet.create({
   },
   switchAuthText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A855F7',
   },
   switchAuthLink: {
-    color: '#3B82F6',
+    color: '#8B5CF6',
     fontWeight: '600',
   },
   forgotTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#7C3AED',
     marginBottom: 8,
   },
   forgotSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A855F7',
     marginBottom: 24,
   },
   backButton: {
@@ -467,7 +554,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#A855F7',
   },
   modalOverlay: {
     flex: 1,
@@ -486,12 +573,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#7C3AED',
     marginBottom: 16,
   },
   modalText: {
     fontSize: 14,
-    color: '#374151',
+    color: '#7C3AED',
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -511,7 +598,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#9CA3AF',
+    borderColor: '#C4B5FD',
     borderRadius: 4,
     marginRight: 12,
     marginTop: 2,
@@ -519,8 +606,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxBoxChecked: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
   },
   checkboxCheck: {
     color: '#FFFFFF',
@@ -530,7 +617,7 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     flex: 1,
     fontSize: 14,
-    color: '#374151',
+    color: '#7C3AED',
     lineHeight: 20,
   },
   modalButtons: {
@@ -539,13 +626,13 @@ const styles = StyleSheet.create({
   },
   modalButtonCancel: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(233, 213, 255, 0.3)',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalButtonCancelText: {
-    color: '#374151',
+    color: '#7C3AED',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -556,5 +643,77 @@ const styles = StyleSheet.create({
   },
   modalButtonDisabled: {
     opacity: 0.5,
+  },
+  disclaimerLink: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  disclaimerLinkText: {
+    fontSize: 13,
+    color: '#A855F7',
+    textDecorationLine: 'underline',
+  },
+  disclaimerButton: {
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  disclaimerButtonText: {
+    fontSize: 14,
+    color: '#8B5CF6',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  disclaimerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  disclaimerModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+  },
+  disclaimerModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E9D5FF',
+  },
+  disclaimerModalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#7C3AED',
+  },
+  disclaimerModalClose: {
+    fontSize: 24,
+    color: '#C4B5FD',
+    fontWeight: '300',
+  },
+  disclaimerModalBody: {
+    padding: 24,
+  },
+  disclaimerSection: {
+    marginBottom: 24,
+  },
+  disclaimerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#7C3AED',
+    marginBottom: 8,
+  },
+  disclaimerText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#A855F7',
+  },
+  disclaimerModalButton: {
+    margin: 24,
+    marginTop: 0,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 });

@@ -1,33 +1,56 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: '#8B5CF6',
+        tabBarInactiveTintColor: '#C4B5FD',
+        tabBarStyle: {
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderTopWidth: 1,
+          borderTopColor: '#E9D5FF',
+          elevation: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 4,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+        tabBarIconStyle: {
+          display: 'none',
+        },
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'My Affirmations',
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="chat"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'AI Coach',
+        }}
+      />
+      <Tabs.Screen
+        name="goals"
+        options={{
+          title: 'Goals',
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
