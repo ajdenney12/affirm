@@ -14,7 +14,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
-const AI_CHAT_URL = 'https://ypeadvaztfjxnarberhv.supabase.co/functions/v1/ai-chat';
+const AI_CHAT_URL =
+  'https://ypeadvaztfjxnarberhv.supabase.co/functions/v1/ai-chat';
+
+const AI_CHAT_KEY =
+  'sb_publishable_dlgfP7umzbbScdD4WZ4kwA_VQTIpVuv';
 
 interface Message {
   id: string;
@@ -30,9 +34,11 @@ export default function ChatScreen() {
       content: "Hello! I'm your wellness coach. How can I support you today?",
     },
   ]);
+
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -40,7 +46,10 @@ export default function ChatScreen() {
 
   const sendMessage = async () => {
     const text = inputText.trim();
-    if (!text || loading) return;
+
+    if (!text || loading) {
+      return;
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -49,41 +58,73 @@ export default function ChatScreen() {
     };
 
     const nextMessages = [...messages, userMsg];
+
     setMessages(nextMessages);
     setInputText('');
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       const payload = {
-        messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
+        messages: nextMessages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
         systemPrompt: 'You are a supportive wellness coach.',
         userId: session?.user?.id,
       };
+
+      console.log('Sending AI chat request...');
 
       const response = await fetch(AI_CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          apikey: AI_CHAT_KEY,
         },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      console.log('AI CHAT STATUS:', response.status);
+
+      const responseText = await response.text();
+
+      console.log('AI CHAT RAW RESPONSE:', responseText);
+
+      if (!response.ok) {
+        throw new Error(
+          `AI chat request failed with status ${response.status}: ${responseText}`
+        );
+      }
+
+      let data;
+
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('AI chat returned an invalid response.');
+      }
+
       const replyText =
-        data.content?.[0]?.text ||
-        data.reply ||
+        data?.content?.[0]?.text ||
+        data?.reply ||
         'Sorry, I could not process that. Please try again.';
 
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'assistant', content: replyText },
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: replyText,
+        },
       ]);
-    } catch {
-      setMessages(prev => [
+    } catch (error: any) {
+      console.error('AI CHAT ERROR:', error);
+
+      setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
@@ -98,7 +139,10 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient colors={['#E9D5FF', '#FECDD3']} style={styles.gradient}>
+      <LinearGradient
+        colors={['#E9D5FF', '#FECDD3']}
+        style={styles.gradient}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>AI Coach</Text>
           <Text style={styles.subtitle}>Your personal wellness guide</Text>
@@ -116,18 +160,22 @@ export default function ChatScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {messages.map(msg => (
+            {messages.map((msg) => (
               <View
                 key={msg.id}
                 style={[
                   styles.bubble,
-                  msg.role === 'user' ? styles.userBubble : styles.assistantBubble,
+                  msg.role === 'user'
+                    ? styles.userBubble
+                    : styles.assistantBubble,
                 ]}
               >
                 <Text
                   style={[
                     styles.bubbleText,
-                    msg.role === 'user' ? styles.userText : styles.assistantText,
+                    msg.role === 'user'
+                      ? styles.userText
+                      : styles.assistantText,
                   ]}
                 >
                   {msg.content}
@@ -136,7 +184,13 @@ export default function ChatScreen() {
             ))}
 
             {loading && (
-              <View style={[styles.bubble, styles.assistantBubble, styles.typingBubble]}>
+              <View
+                style={[
+                  styles.bubble,
+                  styles.assistantBubble,
+                  styles.typingBubble,
+                ]}
+              >
                 <ActivityIndicator size="small" color="#6B7280" />
               </View>
             )}
@@ -153,13 +207,21 @@ export default function ChatScreen() {
               maxLength={500}
               returnKeyType="default"
             />
+
             <TouchableOpacity
-              style={[styles.sendButton, (!inputText.trim() || loading) && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || loading) &&
+                  styles.sendButtonDisabled,
+              ]}
               onPress={sendMessage}
               disabled={!inputText.trim() || loading}
               activeOpacity={0.75}
             >
-              <LinearGradient colors={['#F472B6', '#EC4899']} style={styles.sendGradient}>
+              <LinearGradient
+                colors={['#F472B6', '#EC4899']}
+                style={styles.sendGradient}
+              >
                 <Text style={styles.sendText}>Send</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -174,70 +236,88 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
   gradient: {
     flex: 1,
   },
+
   flex: {
     flex: 1,
   },
+
   header: {
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
   },
+
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#1F2937',
   },
+
   subtitle: {
     fontSize: 16,
     color: '#1F2937',
     marginTop: 4,
   },
+
   messageList: {
     flex: 1,
   },
+
   messageListContent: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
   },
+
   bubble: {
     maxWidth: '80%',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
   },
+
   userBubble: {
     alignSelf: 'flex-end',
     backgroundColor: '#BE185D',
     borderBottomRightRadius: 4,
   },
+
   assistantBubble: {
     alignSelf: 'flex-start',
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 4,
   },
+
   typingBubble: {
     paddingVertical: 14,
     paddingHorizontal: 20,
   },
+
   bubbleText: {
     fontSize: 16,
     lineHeight: 22,
   },
+
   userText: {
     color: '#FFFFFF',
   },
+
   assistantText: {
     color: '#1F2937',
   },
+
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -246,6 +326,7 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
+
   input: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -258,19 +339,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(233, 213, 255, 0.8)',
   },
+
   sendButton: {
     borderRadius: 14,
     overflow: 'hidden',
   },
+
   sendButtonDisabled: {
     opacity: 0.45,
   },
+
   sendGradient: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   sendText: {
     color: '#FFFFFF',
     fontSize: 16,
