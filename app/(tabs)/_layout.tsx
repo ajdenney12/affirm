@@ -35,22 +35,25 @@ export default function TabLayout() {
           title: 'My Affirmations',
         }}
       />
+
       <Tabs.Screen
         name="chat"
         options={{
           title: 'AI Coach',
         }}
       />
+
       <Tabs.Screen
         name="goals"
         options={{
           title: 'Goals',
         }}
       />
+
       <Tabs.Screen
         name="settings"
         options={{
-          href: null,
+          title: 'Settings',
         }}
       />
     </Tabs>
