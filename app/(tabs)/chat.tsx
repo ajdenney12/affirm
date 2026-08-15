@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
@@ -138,8 +139,13 @@ export default function ChatScreen() {
         style={styles.gradient}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>AI Coach</Text>
-          <Text style={styles.subtitle}>Your personal wellness guide</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.title}>AI Coach</Text>
+              <Text style={styles.subtitle}>Your personal wellness guide</Text>
+            </View>
+            <View style={styles.headerBadge}><Ionicons name="sparkles" size={20} color="#FFFFFF" /></View>
+          </View>
         </View>
 
         <KeyboardAvoidingView
@@ -240,20 +246,26 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 18,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.62)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
   },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#8B5BD6', alignItems: 'center', justifyContent: 'center' },
 
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#33215E',
   },
 
   subtitle: {
     fontSize: 16,
-    color: '#1F2937',
+    color: '#33215E',
     marginTop: 4,
   },
 
@@ -309,7 +321,7 @@ const styles = StyleSheet.create({
   },
 
   assistantText: {
-    color: '#1F2937',
+    color: '#33215E',
   },
 
   inputRow: {
@@ -318,24 +330,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    borderRadius: 22,
+    marginHorizontal: 16,
+    marginBottom: 104,
   },
 
   input: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1F2937',
+    color: '#33215E',
     maxHeight: 100,
     borderWidth: 1,
     borderColor: 'rgba(233, 213, 255, 0.8)',
   },
 
   sendButton: {
-    borderRadius: 14,
+    borderRadius: 18,
     overflow: 'hidden',
   },
 

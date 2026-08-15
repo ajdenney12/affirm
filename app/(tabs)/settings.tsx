@@ -9,6 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
@@ -64,6 +65,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>Account</Text>
             <View style={styles.card}>
               <View style={styles.infoRow}>
+                <View style={styles.rowIcon}><Ionicons name="person-outline" size={18} color="#6B3FC6" /></View>
                 <Text style={styles.infoLabel}>Email</Text>
                 <Text style={styles.infoValue}>{userEmail}</Text>
               </View>
@@ -77,8 +79,8 @@ export default function SettingsScreen() {
               onPress={() => setShowDisclaimers(true)}
             >
               <View style={styles.menuItem}>
-                <Text style={styles.menuItemText}>Disclaimers</Text>
-                <Text style={styles.menuItemArrow}>›</Text>
+                <View style={styles.menuItemLeft}><View style={styles.rowIcon}><Ionicons name="information-circle-outline" size={18} color="#6B3FC6" /></View><Text style={styles.menuItemText}>Disclaimers</Text></View>
+                <Ionicons name="chevron-forward" size={20} color="#B7AFC0" />
               </View>
             </TouchableOpacity>
           </View>
@@ -160,11 +162,12 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingTop: 18,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   subtitle: {
     fontSize: 16,
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   contentContainer: {
-    paddingBottom: 20,
+    paddingBottom: 120,
   },
   section: {
     marginBottom: 24,
@@ -189,9 +192,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#F3E7F2',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -203,10 +208,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  rowIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F8F0FF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   infoLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   infoValue: {
     fontSize: 16,
@@ -220,7 +227,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   menuItemArrow: {
     fontSize: 24,
@@ -262,7 +269,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   modalClose: {
     fontSize: 24,
@@ -278,7 +285,7 @@ const styles = StyleSheet.create({
   disclaimerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 8,
   },
   disclaimerText: {

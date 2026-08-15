@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
@@ -139,10 +140,13 @@ export default function AffirmationsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={['#E9D5FF', '#FECDD3']} style={styles.gradient}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>My Affirmations</Text>
-            <Text style={styles.subtitle}>Empowering thoughts for your journey</Text>
+          <View style={styles.headerIconRow}>
+            <View style={styles.headerIcon}><Ionicons name="person-outline" size={20} color="#33215E" /></View>
+            <View style={styles.notificationIcon}><Ionicons name="notifications-outline" size={20} color="#33215E" /><View style={styles.notificationDot} /></View>
           </View>
+          <View style={styles.brandMark}><Ionicons name="sparkles" size={30} color="#D58AEF" /></View>
+          <Text style={styles.title}>NextSelf</Text>
+          <Text style={styles.subtitle}>Your AI Partner in Growth</Text>
         </View>
 
         <ScrollView
@@ -162,21 +166,23 @@ export default function AffirmationsScreen() {
             affirmations.map((affirmation) => (
               <View key={affirmation.id} style={styles.affirmationCard}>
                 <View style={styles.affirmationContent}>
-                  <Text style={styles.sparkleIcon}>✨</Text>
+                  <Ionicons name="sparkles-outline" size={20} color="#F08FC6" />
                   <Text style={styles.affirmationText}>{affirmation.text}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteAffirmation(affirmation.id)}
-                    style={styles.trashIcon}
-                  >
-                    <Text style={styles.trashIconText}>🗑️</Text>
-                  </TouchableOpacity>
+                  <View style={styles.cardActions}>
+                    <TouchableOpacity onPress={() => handleEditAffirmation(affirmation)} style={styles.cardAction}>
+                      <Ionicons name="create-outline" size={17} color="#A39BAE" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteAffirmation(affirmation.id)} style={styles.cardAction}>
+                      <Ionicons name="trash-outline" size={17} color="#A39BAE" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))
           )}
 
           <View style={styles.addSection}>
-            <Text style={styles.addSectionTitle}>Write Your Affirmation</Text>
+            <Text style={styles.addSectionTitle}>Create a new affirmation</Text>
             <View style={styles.addInputContainer}>
               <TextInput
                 style={styles.addInput}
@@ -269,25 +275,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    alignItems: 'center',
   },
+  headerIconRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  headerIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F08FC6',
+  },
+  brandMark: { marginBottom: -2 },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#7C3AED',
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '700',
+    color: '#6B3FC6',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#A855F7',
-    marginTop: 4,
+    fontSize: 13,
+    color: '#8B8794',
+    marginTop: 2,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   emptyState: {
     alignItems: 'center',
@@ -302,7 +344,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 12,
   },
   emptySubtext: {
@@ -312,10 +354,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   affirmationCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#F3E7F2',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -332,11 +376,14 @@ const styles = StyleSheet.create({
   },
   affirmationText: {
     flex: 1,
-    fontSize: 20,
-    fontStyle: 'italic',
-    color: '#8B5CF6',
-    lineHeight: 28,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#33215E',
+    lineHeight: 20,
+    marginHorizontal: 12,
   },
+  cardActions: { flexDirection: 'row', alignItems: 'center' },
+  cardAction: { padding: 4, marginLeft: 4 },
   trashIcon: {
     padding: 8,
     marginLeft: 8,
@@ -348,9 +395,9 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   addSectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#7C3AED',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#33215E',
     marginBottom: 12,
   },
   addInputContainer: {
@@ -364,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#33215E',
     minHeight: 60,
     maxHeight: 120,
     textAlignVertical: 'top',
@@ -407,7 +454,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 24,
   },
   inputGroup: {
@@ -416,7 +463,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 8,
   },
   input: {
@@ -426,7 +473,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#33215E',
   },
   textArea: {
     height: 100,
@@ -447,7 +494,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   modalButtonConfirm: {
     flex: 1,

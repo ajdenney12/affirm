@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
@@ -215,10 +216,10 @@ export default function GoalsScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Goals</Text>
-            <Text style={styles.subtitle}>Track your progress</Text>
+            <Text style={styles.subtitle}>Small steps, meaningful progress</Text>
           </View>
           <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-            <Text style={styles.addIcon}>+</Text>
+            <Ionicons name="add" size={26} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -520,16 +521,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 16,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#33215E',
   },
   subtitle: {
     fontSize: 16,
-    color: '#1F2937',
+    color: '#33215E',
     marginTop: 4,
   },
   addButton: {
@@ -555,7 +558,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 120,
   },
   emptyState: {
     alignItems: 'center',
@@ -568,7 +571,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 8,
   },
   emptySubtext: {
@@ -576,13 +579,15 @@ const styles = StyleSheet.create({
     color: '#A855F7',
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F3E7F2',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -598,7 +603,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 4,
   },
   goalTypeLabel: {
@@ -663,7 +668,7 @@ const styles = StyleSheet.create({
   yesNoText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   yesNoTextCompleted: {
     color: '#FFFFFF',
@@ -675,7 +680,7 @@ const styles = StyleSheet.create({
   numericValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -708,7 +713,7 @@ const styles = StyleSheet.create({
   },
   checklistText: {
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#33215E',
     flex: 1,
   },
   checklistTextCompleted: {
@@ -737,7 +742,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 24,
   },
   inputGroup: {
@@ -746,7 +751,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: '#33215E',
     marginBottom: 8,
   },
   input: {
@@ -756,7 +761,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#33215E',
   },
   textArea: {
     height: 80,
@@ -777,7 +782,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
   },
   modalButtonConfirm: {
     flex: 1,
@@ -815,7 +820,7 @@ const styles = StyleSheet.create({
   typeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#33215E',
     textAlign: 'center',
   },
   typeButtonTextActive: {
@@ -832,7 +837,7 @@ const styles = StyleSheet.create({
   },
   checklistItemText: {
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#33215E',
     flex: 1,
   },
   removeItemButton: {
