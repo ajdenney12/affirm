@@ -135,7 +135,7 @@ export default function ChatScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient
-        colors={['#E9D5FF', '#FECDD3']}
+        colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']}
         style={styles.gradient}
       >
         <View style={styles.header}>
@@ -219,7 +219,7 @@ export default function ChatScreen() {
               activeOpacity={0.75}
             >
               <LinearGradient
-                colors={['#F472B6', '#EC4899']}
+                colors={['#7C4DEE', '#9B6DFF']}
                 style={styles.sendGradient}
               >
                 <Text style={styles.sendText}>Send</Text>
@@ -250,12 +250,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 18,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: '#EDE5FF',
   },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#8B5BD6', alignItems: 'center', justifyContent: 'center' },
+  headerBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#7C4DEE', alignItems: 'center', justifyContent: 'center' },
 
   title: {
     fontSize: 32,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
 
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#BE185D',
+    backgroundColor: '#7C4DEE',
     borderBottomRightRadius: 4,
   },
 
@@ -330,10 +330,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 22,
     marginHorizontal: 16,
-    marginBottom: 104,
+    marginBottom: 116,
+    borderWidth: 1,
+    borderColor: '#EDE5FF',
   },
 
   input: {
@@ -346,7 +348,7 @@ const styles = StyleSheet.create({
     color: '#33215E',
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: 'rgba(233, 213, 255, 0.8)',
+    borderColor: '#EDE5FF',
   },
 
   sendButton: {

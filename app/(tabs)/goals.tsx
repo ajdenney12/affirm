@@ -212,14 +212,14 @@ export default function GoalsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient colors={['#E9D5FF', '#FECDD3']} style={styles.gradient}>
+      <LinearGradient colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']} style={styles.gradient}>
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Goals</Text>
             <Text style={styles.subtitle}>Small steps, meaningful progress</Text>
           </View>
           <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
-            <Ionicons name="add" size={26} color="#FFFFFF" />
+            <Ionicons name="add" size={28} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -249,8 +249,8 @@ export default function GoalsScreen() {
                         {goal.type === 'numeric' && 'Numeric'}
                       </Text>
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteGoal(goal.id)}>
-                      <Text style={styles.deleteIcon}>🗑️</Text>
+                    <TouchableOpacity onPress={() => handleDeleteGoal(goal.id)} style={styles.goalDeleteBtn}>
+                      <Ionicons name="trash-outline" size={17} color="#A39BAE" />
                     </TouchableOpacity>
                   </View>
 
@@ -493,7 +493,7 @@ export default function GoalsScreen() {
                       onPress={handleAddGoal}
                       disabled={loading}
                     >
-                      <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.buttonGradient}>
+                      <LinearGradient colors={['#7C4DEE', '#9B6DFF']} style={styles.buttonGradient}>
                         <Text style={styles.buttonText}>
                           {loading ? 'Adding...' : 'Add Goal'}
                         </Text>
@@ -536,17 +536,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#8B5CF6',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#7C4DEE',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#7C4DEE',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 5,
   },
   addIcon: {
     fontSize: 28,
@@ -580,11 +580,11 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 18,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F3E7F2',
+    borderColor: '#EDE5FF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
   },
   progressText: {
     fontSize: 12,
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -652,6 +652,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  goalDeleteBtn: { padding: 4 },
   deleteIcon: {
     fontSize: 20,
   },
@@ -663,7 +664,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   yesNoButtonCompleted: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
   },
   yesNoText: {
     fontSize: 16,
@@ -703,8 +704,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
+    borderColor: '#7C4DEE',
   },
   checkmark: {
     color: '#FFFFFF',
@@ -814,8 +815,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   typeButtonActive: {
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#F4EEFF',
+    borderColor: '#7C4DEE',
   },
   typeButtonText: {
     fontSize: 14,
@@ -824,7 +825,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   typeButtonTextActive: {
-    color: '#8B5CF6',
+    color: '#7C4DEE',
   },
   checklistItemInput: {
     flexDirection: 'row',
@@ -842,7 +843,7 @@ const styles = StyleSheet.create({
   },
   removeItemButton: {
     fontSize: 18,
-    color: '#EC4899',
+    color: '#7C4DEE',
     fontWeight: 'bold',
     paddingHorizontal: 8,
   },
@@ -858,7 +859,7 @@ const styles = StyleSheet.create({
   addItemButton: {
     width: 44,
     height: 44,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

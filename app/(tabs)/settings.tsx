@@ -50,7 +50,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient colors={['#E9D5FF', '#FECDD3']} style={styles.gradient}>
+      <LinearGradient colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']} style={styles.gradient}>
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>
           <Text style={styles.subtitle}>Manage your account</Text>
@@ -141,7 +141,7 @@ export default function SettingsScreen() {
                 style={styles.modalButton}
                 onPress={() => setShowDisclaimers(false)}
               >
-                <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.buttonGradient}>
+                <LinearGradient colors={['#7C4DEE', '#9B6DFF']} style={styles.buttonGradient}>
                   <Text style={styles.buttonText}>Close</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -193,10 +193,10 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F3E7F2',
+    borderColor: '#EDE5FF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  rowIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F8F0FF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  rowIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F4EEFF', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   infoLabel: {
     fontSize: 16,
@@ -234,17 +234,17 @@ const styles = StyleSheet.create({
     color: '#C4B5FD',
   },
   logoutButton: {
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    backgroundColor: '#F4EEFF',
     borderWidth: 1,
-    borderColor: '#EC4899',
-    borderRadius: 12,
-    padding: 16,
+    borderColor: '#EDE5FF',
+    borderRadius: 16,
+    padding: 18,
     alignItems: 'center',
   },
   logoutButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EC4899',
+    color: '#7C4DEE',
   },
   modalOverlay: {
     flex: 1,

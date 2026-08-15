@@ -119,14 +119,14 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <LinearGradient
-        colors={['#E9D5FF', '#FFFFFF', '#FECDD3']}
+        colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']}
         style={styles.gradient}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <LinearGradient
-                colors={['#8B5CF6', '#EC4899']}
+                colors={['#7C4DEE', '#9B6DFF']}
                 style={styles.icon}
               >
                 <Text style={styles.iconText}>✨</Text>
@@ -195,7 +195,7 @@ export default function LoginScreen() {
                     disabled={loading}
                   >
                     <LinearGradient
-                      colors={['#8B5CF6', '#EC4899']}
+                      colors={['#7C4DEE', '#9B6DFF']}
                       style={styles.buttonGradient}
                     >
                       <Text style={styles.buttonText}>
@@ -251,7 +251,7 @@ export default function LoginScreen() {
                     disabled={loading}
                   >
                     <LinearGradient
-                      colors={['#8B5CF6', '#EC4899']}
+                      colors={['#7C4DEE', '#9B6DFF']}
                       style={styles.buttonGradient}
                     >
                       <Text style={styles.buttonText}>
@@ -329,7 +329,7 @@ export default function LoginScreen() {
                   disabled={!ageConfirmed || loading}
                 >
                   <LinearGradient
-                    colors={['#8B5CF6', '#EC4899']}
+                    colors={['#7C4DEE', '#9B6DFF']}
                     style={styles.buttonGradient}
                   >
                     <Text style={styles.buttonText}>
@@ -391,7 +391,7 @@ export default function LoginScreen() {
                 style={styles.disclaimerModalButton}
                 onPress={() => setShowDisclaimers(false)}
               >
-                <LinearGradient colors={['#8B5CF6', '#EC4899']} style={styles.buttonGradient}>
+                <LinearGradient colors={['#7C4DEE', '#9B6DFF']} style={styles.buttonGradient}>
                   <Text style={styles.buttonText}>Close</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -435,17 +435,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#7C4DEE',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#A855F7',
+    color: '#9B6DFF',
     textAlign: 'center',
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: 24,
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(233, 213, 255, 0.3)',
+    backgroundColor: '#F4EEFF',
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#A855F7',
+    color: '#9B6DFF',
   },
   tabTextActive: {
-    color: '#7C3AED',
+    color: '#7C4DEE',
   },
   form: {
     gap: 16,
@@ -491,12 +491,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#7C3AED',
+    color: '#7C4DEE',
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E9D5FF',
+    borderColor: '#EDE5FF',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#8B5CF6',
+    color: '#7C4DEE',
   },
   button: {
     borderRadius: 12,
@@ -530,21 +530,21 @@ const styles = StyleSheet.create({
   },
   switchAuthText: {
     fontSize: 14,
-    color: '#A855F7',
+    color: '#9B6DFF',
   },
   switchAuthLink: {
-    color: '#8B5CF6',
+    color: '#7C4DEE',
     fontWeight: '600',
   },
   forgotTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#7C4DEE',
     marginBottom: 8,
   },
   forgotSubtitle: {
     fontSize: 14,
-    color: '#A855F7',
+    color: '#9B6DFF',
     marginBottom: 24,
   },
   backButton: {
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#A855F7',
+    color: '#9B6DFF',
   },
   modalOverlay: {
     flex: 1,
@@ -573,19 +573,19 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#7C4DEE',
     marginBottom: 16,
   },
   modalText: {
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#7C4DEE',
     lineHeight: 20,
     marginBottom: 16,
   },
   checkboxContainer: {
     backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#EDE5FF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#C4B5FD',
+    borderColor: '#C9B8F0',
     borderRadius: 4,
     marginRight: 12,
     marginTop: 2,
@@ -606,8 +606,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxBoxChecked: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: '#7C4DEE',
+    borderColor: '#7C4DEE',
   },
   checkboxCheck: {
     color: '#FFFFFF',
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     flex: 1,
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#7C4DEE',
     lineHeight: 20,
   },
   modalButtons: {
@@ -626,13 +626,13 @@ const styles = StyleSheet.create({
   },
   modalButtonCancel: {
     flex: 1,
-    backgroundColor: 'rgba(233, 213, 255, 0.3)',
+    backgroundColor: '#F4EEFF',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
   modalButtonCancelText: {
-    color: '#7C3AED',
+    color: '#7C4DEE',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
   },
   disclaimerLinkText: {
     fontSize: 13,
-    color: '#A855F7',
+    color: '#9B6DFF',
     textDecorationLine: 'underline',
   },
   disclaimerButton: {
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
   },
   disclaimerButtonText: {
     fontSize: 14,
-    color: '#8B5CF6',
+    color: '#7C4DEE',
     textAlign: 'center',
     textDecorationLine: 'underline',
   },
@@ -681,16 +681,16 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E9D5FF',
+    borderBottomColor: '#EDE5FF',
   },
   disclaimerModalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7C3AED',
+    color: '#7C4DEE',
   },
   disclaimerModalClose: {
     fontSize: 24,
-    color: '#C4B5FD',
+    color: '#C9B8F0',
     fontWeight: '300',
   },
   disclaimerModalBody: {
@@ -702,13 +702,13 @@ const styles = StyleSheet.create({
   disclaimerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#7C4DEE',
     marginBottom: 8,
   },
   disclaimerText: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#A855F7',
+    color: '#9B6DFF',
   },
   disclaimerModalButton: {
     margin: 24,
