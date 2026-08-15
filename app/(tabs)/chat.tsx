@@ -77,8 +77,6 @@ export default function ChatScreen() {
         userId: session?.user?.id,
       };
 
-      console.log('Sending AI chat request...');
-
       const response = await fetch(AI_CHAT_URL, {
         method: 'POST',
         headers: {
@@ -88,11 +86,7 @@ export default function ChatScreen() {
         body: JSON.stringify(payload),
       });
 
-      console.log('AI CHAT STATUS:', response.status);
-
       const responseText = await response.text();
-
-      console.log('AI CHAT RAW RESPONSE:', responseText);
 
       if (!response.ok) {
         throw new Error(
