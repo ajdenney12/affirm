@@ -7,6 +7,233 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+const ANTHROPIC_API_VERSION = '2023-06-01';
+const CLAUDE_MODEL = 'claude-sonnet-4-5-20250929';
+const MAX_TOKENS = 600;
+const MAX_HISTORY_MESSAGES = 20;
+
+const NEXTSELF_SYSTEM_PROMPT = `You are NextSelf, a warm and empowering personal wellness coach specializing in Motivational Interviewing (MI) and positive psychology.
+
+Your purpose is to guide users through a structured, conversational process that ends with one personalized AFFIRMATION STATEMENT or GOAL STATEMENT they can keep, repeat, and act on.
+
+### PERSONALITY & TONE
+
+* Warm, curious, and encouraging — never clinical or robotic.
+* Speak like a trusted personal-growth coach, not a therapist or doctor.
+* Use the user's own words when reflecting back to them.
+* Never use hollow filler phrases such as "That's great!" or "Absolutely!".
+* Respond specifically to what the user actually shared.
+* Keep responses concise: normally 3–5 sentences maximum plus one question.
+* Ask only one question at a time.
+
+### CONVERSATION PROCESS
+
+Follow these stages in order.
+
+Do not rush ahead merely because the user gives a short answer.
+
+#### STAGE 1 — OPEN
+
+Discover what area of life the user wants to work on.
+
+Ask one open-ended question.
+
+Do not suggest solutions yet.
+
+Example:
+
+"If one thing in your life could feel different a month from now, what would it be?"
+
+Move forward once the user identifies a topic or area.
+
+#### STAGE 2 — REFLECT & DEEPEN
+
+Reflect the user's own language before asking the next question.
+
+Ask one meaningful deepening question.
+
+Do not offer solutions yet.
+
+Explore:
+
+* what they want to change;
+* why it matters;
+* what may be getting in the way;
+* what success would look or feel like;
+* what would be different if they made progress.
+
+Examples include:
+
+"What's been getting in the way so far?"
+
+"When you picture yourself having already made this change, what looks different?"
+
+"What would the people closest to you notice?"
+
+Move forward when you understand both WHAT the user wants and WHY it matters.
+
+#### STAGE 3 — CONFIRM
+
+Summarize what you have learned in approximately 2–3 sentences.
+
+Include:
+
+* the user's desired change;
+* why it matters;
+* any meaningful obstacle they identified.
+
+End by asking:
+
+"Does that capture it, or is there something important I missed?"
+
+Do not create an affirmation or goal until the user confirms or corrects the summary.
+
+#### STAGE 4 — CHOOSE DIRECTION AND CO-CREATE
+
+Determine whether the user's desired outcome is best expressed as an AFFIRMATION or a GOAL.
+
+If it is unclear, ask the user whether they want to create:
+
+* an affirmation about the person they are becoming, or
+* an actionable goal they can work toward.
+
+This is the first stage where you may offer finished suggestions.
+
+##### For an AFFIRMATION:
+
+Introduce with:
+
+"Based on everything you've shared, here are a few statements to try on:"
+
+Provide exactly three options labeled:
+
+Option A
+Option B
+Option C
+
+Affirmations should:
+
+* be written in first-person present tense;
+* be based on the user's actual words and motivations;
+* feel believable enough for the user to connect with;
+* avoid exaggerated claims that contradict the user's reality;
+* preferably begin with structures such as:
+
+  * "I am..."
+  * "I choose..."
+  * "Every day I..."
+  * "I release..."
+  * "I am becoming..."
+
+End with:
+
+"Which of these feels closest to true, or would you like to adjust the wording?"
+
+##### For a GOAL:
+
+Introduce with:
+
+"Based on everything you've shared, here are a few goals to try on:"
+
+Provide exactly three options labeled:
+
+Option A
+Option B
+Option C
+
+Goals should:
+
+* reflect what the user actually wants;
+* describe an action or meaningful outcome rather than merely a feeling;
+* be realistic and appropriately specific;
+* include measurable frequency, quantity, deadline, or milestone when that naturally fits;
+* avoid creating unrealistic or medically inappropriate goals.
+
+Example difference:
+
+Affirmation:
+"I am becoming someone who honors my body by making movement part of my life."
+
+Goal:
+"I will take a 20-minute walk three days each week for the next four weeks."
+
+End with:
+
+"Which of these feels most doable and meaningful, or would you like to adjust it?"
+
+#### STAGE 5 — COMMIT
+
+When the user chooses or refines the final statement, present it clearly.
+
+For an affirmation:
+
+✨ YOUR AFFIRMATION:
+
+"[final statement]"
+
+For a goal:
+
+🎯 YOUR GOAL:
+
+"[final statement]"
+
+Then give 1–2 concise sentences of encouragement specifically tied to what the user shared.
+
+Encourage them to save the statement in NextSelf.
+
+### HANDLING USERS WHO WANT TO SKIP THE PROCESS
+
+If a user immediately says something such as:
+
+"Just give me an affirmation."
+
+Do not force them through an unnecessarily long conversation.
+
+Respond along these lines:
+
+"I can do that — let me ask you one quick thing so I can make it genuinely personal."
+
+Then ask the minimum number of questions needed to understand the user's desired change and motivation.
+
+The coaching process should feel helpful, not rigid.
+
+### WELLNESS AND SAFETY BOUNDARIES
+
+NextSelf is a personal-growth and general-wellness tool.
+
+It is not:
+
+* a therapist;
+* a psychologist;
+* a physician;
+* a mental-health treatment service;
+* a crisis service;
+* a financial adviser;
+* a lawyer.
+
+Do not diagnose conditions.
+
+Do not recommend medication, medication changes, dosages, detox protocols, or medical treatment.
+
+Do not provide therapy or claim to treat mental-health conditions.
+
+A user mentioning a health or mental-health condition does not automatically prevent ordinary wellness coaching.
+
+For example:
+
+"I have ADHD and want to become more organized"
+
+may still be supported with a nonclinical organization or habit goal.
+
+But do not attempt to treat the ADHD itself.
+
+If a user describes a situation requiring professional medical, psychological, legal, financial, or other licensed expertise, explain the limitation and encourage appropriate professional support.
+
+If the user expresses imminent self-harm, suicide, or immediate danger, do not continue the normal affirmation/goal workflow. Provide an appropriate brief safety-focused response and encourage immediate local emergency or crisis support.
+
+Do not hardcode a specific country's crisis phone number unless the app reliably knows the user's location.`;
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -14,428 +241,85 @@ interface ChatMessage {
 
 interface RequestBody {
   messages: ChatMessage[];
-  systemPrompt: string;
-  userId?: string;
+  systemPrompt?: string;
 }
 
-// Extract specific topics and keywords from conversation
-function extractTopics(messages: ChatMessage[]): {
-  specificGoals: string[],
-  specificChallenges: string[],
-  specificActivities: string[],
-  specificEmotions: string[]
-} {
-  const userMessages = messages.filter(m => m.role === 'user');
-  const allText = userMessages.map(m => m.content).join(' ');
+const FRIENDLY_ERROR = "I'm having trouble connecting right now. Please try again in a moment.";
 
-  const specificGoals: string[] = [];
-  const specificChallenges: string[] = [];
-  const specificActivities: string[] = [];
-  const specificEmotions: string[] = [];
+/**
+ * Strips leading assistant messages and trims history so the messages array
+ * sent to Anthropic always starts with a user turn and stays within a sane length.
+ */
+function prepareMessages(rawMessages: ChatMessage[]): ChatMessage[] {
+  let msgs = [...rawMessages];
 
-  // Extract goals with context
-  const goalPatterns = [
-    /(?:want to|trying to|planning to|hope to|goal is to|working on)\s+([^.!?]+)/gi,
-    /(?:become|start|learn|achieve|build|create|improve|develop)\s+([^.!?]+)/gi,
-  ];
-  goalPatterns.forEach(pattern => {
-    const matches = allText.matchAll(pattern);
-    for (const match of matches) {
-      if (match[1]) {
-        specificGoals.push(match[1].trim().slice(0, 100));
-      }
-    }
-  });
+  // Anthropic requires the first message to have role "user"
+  while (msgs.length > 0 && msgs[0].role !== 'user') {
+    msgs.shift();
+  }
 
-  // Extract challenges with context
-  const challengePatterns = [
-    /(?:struggling with|difficult to|hard to|can't|cannot)\s+([^.!?]+)/gi,
-    /(?:problem with|issue with|trouble with|worried about)\s+([^.!?]+)/gi,
-  ];
-  challengePatterns.forEach(pattern => {
-    const matches = allText.matchAll(pattern);
-    for (const match of matches) {
-      if (match[1]) {
-        specificChallenges.push(match[1].trim().slice(0, 100));
-      }
-    }
-  });
+  // Keep only the most recent conversation turns to control cost and context size
+  if (msgs.length > MAX_HISTORY_MESSAGES) {
+    msgs = msgs.slice(-MAX_HISTORY_MESSAGES);
+  }
 
-  // Extract specific activities and topics
-  const activityWords = [
-    'running', 'exercise', 'workout', 'fitness', 'training',
-    'business', 'startup', 'company', 'career', 'job', 'work',
-    'study', 'learning', 'education', 'course', 'degree',
-    'writing', 'book', 'novel', 'blog', 'content',
-    'relationship', 'family', 'friendship', 'dating', 'marriage',
-    'health', 'diet', 'nutrition', 'meditation', 'therapy',
-    'art', 'music', 'painting', 'drawing', 'creative',
-    'coding', 'programming', 'development', 'tech',
-    'language', 'Spanish', 'French', 'Chinese', 'speaking',
-    'project', 'presentation', 'interview', 'exam', 'test'
-  ];
-
-  activityWords.forEach(word => {
-    if (allText.toLowerCase().includes(word)) {
-      specificActivities.push(word);
-    }
-  });
-
-  // Extract emotional states
-  const emotionWords = [
-    'anxious', 'anxiety', 'nervous', 'worried', 'stressed', 'overwhelmed',
-    'confident', 'excited', 'motivated', 'energized', 'hopeful',
-    'frustrated', 'angry', 'disappointed', 'sad', 'depressed',
-    'happy', 'proud', 'grateful', 'peaceful', 'calm'
-  ];
-
-  emotionWords.forEach(word => {
-    if (allText.toLowerCase().includes(word)) {
-      specificEmotions.push(word);
-    }
-  });
-
-  return { specificGoals, specificChallenges, specificActivities, specificEmotions };
+  return msgs;
 }
 
-// Generate 3 specific affirmations based on conversation
-function generateThreeAffirmations(messages: ChatMessage[]): string {
-  const topics = extractTopics(messages);
-  const affirmations: string[] = [];
+async function callClaude(messages: ChatMessage[]): Promise<string> {
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
 
-  // Generate affirmations based on goals
-  if (topics.specificGoals.length > 0) {
-    const goalText = topics.specificGoals[0];
-    affirmations.push(`I am fully capable of ${goalText}, and I take action every day to make it happen.`);
+  if (!apiKey) {
+    throw new Error('Missing API key configuration');
   }
 
-  // Generate affirmations based on challenges
-  if (topics.specificChallenges.length > 0) {
-    const challengeText = topics.specificChallenges[0];
-    affirmations.push(`I am developing the skills and resilience to overcome ${challengeText}.`);
+  const prepared = prepareMessages(messages);
+
+  if (prepared.length === 0) {
+    throw new Error('No valid messages to send');
   }
 
-  // Generate affirmations based on activities
-  if (topics.specificActivities.length > 0) {
-    const mainActivity = topics.specificActivities[0];
-
-    if (mainActivity.includes('run') || mainActivity.includes('fitness') || mainActivity.includes('exercise') || mainActivity.includes('workout')) {
-      affirmations.push("My body is strong and capable of achieving my fitness goals.");
-    } else if (mainActivity.includes('business') || mainActivity.includes('startup') || mainActivity.includes('career')) {
-      affirmations.push("I have the vision, skills, and determination to build something meaningful.");
-    } else if (mainActivity.includes('learn') || mainActivity.includes('study') || mainActivity.includes('education') || mainActivity.includes('language')) {
-      affirmations.push("I am an eager learner and my mind absorbs new knowledge effortlessly.");
-    } else if (mainActivity.includes('writing') || mainActivity.includes('book') || mainActivity.includes('creative')) {
-      affirmations.push("My creative voice is unique and valuable, and I trust my artistic process.");
-    } else if (mainActivity.includes('relationship') || mainActivity.includes('family') || mainActivity.includes('friend')) {
-      affirmations.push("I cultivate meaningful connections through authentic communication and presence.");
-    } else if (mainActivity.includes('coding') || mainActivity.includes('programming') || mainActivity.includes('tech')) {
-      affirmations.push("I am a skilled problem-solver and I grow more capable with each project.");
-    } else if (mainActivity.includes('health') || mainActivity.includes('diet') || mainActivity.includes('meditation')) {
-      affirmations.push("I prioritize my wellbeing and honor what my body and mind need.");
-    } else if (mainActivity.includes('art') || mainActivity.includes('music') || mainActivity.includes('painting')) {
-      affirmations.push("I express myself authentically through my art and trust my creative process.");
-    }
-  }
-
-  // Generate affirmations based on emotions
-  if (topics.specificEmotions.length > 0) {
-    const emotion = topics.specificEmotions[0];
-    if (['anxious', 'anxiety', 'nervous', 'worried', 'stressed', 'overwhelmed'].includes(emotion)) {
-      affirmations.push("I acknowledge my feelings and choose to take small, manageable steps forward.");
-    } else if (['confident', 'excited', 'motivated', 'hopeful'].includes(emotion)) {
-      affirmations.push("I harness this positive energy to fuel meaningful action toward my goals.");
-    } else if (['frustrated', 'angry', 'disappointed'].includes(emotion)) {
-      affirmations.push("I allow myself to feel these emotions, then channel them into constructive growth.");
-    }
-  }
-
-  // Add general contextual affirmations if needed
-  const userMessages = messages.filter(m => m.role === 'user');
-  const conversationText = userMessages.map(m => m.content).join(' ').toLowerCase();
-
-  if (affirmations.length < 3 && (conversationText.includes('time') || conversationText.includes('busy'))) {
-    affirmations.push("I make time for what truly matters, and I am in control of my priorities.");
-  }
-  if (affirmations.length < 3 && (conversationText.includes('fear') || conversationText.includes('scared'))) {
-    affirmations.push("I feel the fear and move forward anyway, knowing courage is built through action.");
-  }
-  if (affirmations.length < 3 && (conversationText.includes('change') || conversationText.includes('grow'))) {
-    affirmations.push("I embrace change as an opportunity for growth and transformation.");
-  }
-
-  // Ensure exactly 3 unique affirmations
-  const uniqueAffirmations = [...new Set(affirmations)];
-  while (uniqueAffirmations.length < 3) {
-    const fillers = [
-      "I trust in my abilities and my capacity to learn and grow.",
-      "I am worthy of the success and happiness I am creating.",
-      "Every step I take, no matter how small, moves me forward.",
-    ];
-    for (const filler of fillers) {
-      if (!uniqueAffirmations.includes(filler) && uniqueAffirmations.length < 3) {
-        uniqueAffirmations.push(filler);
-      }
-    }
-  }
-
-  // Format the response
-  let response = "Here are 3 affirmations for you:\n\n";
-  uniqueAffirmations.slice(0, 3).forEach((affirmation, index) => {
-    response += `${index + 1}. "${affirmation}"\n`;
-  });
-
-  return response;
-}
-
-// Generate reflective questions based on the topic
-function generateReflectiveQuestions(messages: ChatMessage[], questionNumber: number): string {
-  const topics = extractTopics(messages);
-  const lastMessage = messages[messages.length - 1]?.content || '';
-  const lastMessageLower = lastMessage.toLowerCase();
-
-  const questions: string[][] = [[], [], []]; // 3 sets of questions
-
-  // Question set 1: Understanding the topic deeply
-  if (topics.specificGoals.length > 0) {
-    const goal = topics.specificGoals[topics.specificGoals.length - 1];
-    questions[0].push(`What would achieving ${goal} mean for your life?`);
-    questions[0].push(`Why is ${goal} important to you right now?`);
-  }
-  if (topics.specificActivities.length > 0) {
-    const activity = topics.specificActivities[topics.specificActivities.length - 1];
-    questions[0].push(`What draws you to ${activity}?`);
-    questions[0].push(`What does success look like with ${activity}?`);
-  }
-  if (topics.specificChallenges.length > 0) {
-    const challenge = topics.specificChallenges[topics.specificChallenges.length - 1];
-    questions[0].push(`What makes ${challenge} feel challenging right now?`);
-  }
-  questions[0].push("What's most important to you about this?");
-  questions[0].push("What brought this to your mind today?");
-
-  // Question set 2: Emotional connection and motivation
-  questions[1].push("How do you feel when you think about this?");
-  questions[1].push("What would it feel like to make progress on this?");
-  questions[1].push("What emotions come up for you around this?");
-  questions[1].push("What's driving your desire to work on this?");
-
-  if (topics.specificGoals.length > 0) {
-    questions[1].push("What will change in your life when you achieve this?");
-  }
-  if (topics.specificChallenges.length > 0) {
-    questions[1].push("What would overcoming this challenge give you?");
-  }
-
-  // Question set 3: Action and support
-  questions[2].push("What support would help you most right now?");
-  questions[2].push("What's one small step you could take today?");
-  questions[2].push("What resources do you already have that could help?");
-  questions[2].push("What would make this feel more achievable?");
-
-  if (topics.specificActivities.length > 0) {
-    questions[2].push("What's your next action step?");
-  }
-  if (lastMessageLower.includes('hard') || lastMessageLower.includes('difficult')) {
-    questions[2].push("What might help you move through this difficulty?");
-  }
-
-  // Select appropriate question based on question number
-  const questionSet = questions[questionNumber - 1];
-  if (questionSet.length > 0) {
-    return questionSet[Math.floor(Math.random() * questionSet.length)];
-  }
-
-  // Fallback questions
-  const fallbacks = [
-    "Tell me more about what matters most here.",
-    "What else is on your mind about this?",
-    "How does this connect to what you value?",
-  ];
-  return fallbacks[questionNumber - 1] || fallbacks[0];
-}
-
-// Generate a personalized affirmation from conversation
-function generatePersonalizedAffirmation(messages: ChatMessage[]): string {
-  const topics = extractTopics(messages);
-  const userMessages = messages.filter(m => m.role === 'user');
-  const conversationText = userMessages.map(m => m.content).join(' ').toLowerCase();
-
-  // Prioritize based on what user shared
-  if (topics.specificGoals.length > 0) {
-    const goal = topics.specificGoals[0];
-    return `I am fully capable of ${goal}, and I take meaningful action every day.`;
-  }
-
-  if (topics.specificActivities.length > 0) {
-    const activity = topics.specificActivities[0];
-    if (activity.includes('run') || activity.includes('fitness') || activity.includes('exercise')) {
-      return "My body is strong and capable of achieving my fitness goals.";
-    } else if (activity.includes('business') || activity.includes('startup') || activity.includes('career')) {
-      return "I have the vision, skills, and determination to build something meaningful.";
-    } else if (activity.includes('learn') || activity.includes('study') || activity.includes('language')) {
-      return "I am an eager learner and my mind absorbs new knowledge effortlessly.";
-    } else if (activity.includes('writing') || activity.includes('creative')) {
-      return "My creative voice is unique and valuable, and I trust my artistic process.";
-    } else if (activity.includes('coding') || activity.includes('programming')) {
-      return "I am a skilled problem-solver and I grow more capable with each project.";
-    }
-  }
-
-  if (topics.specificChallenges.length > 0) {
-    const challenge = topics.specificChallenges[0];
-    return `I am developing the skills and resilience to overcome ${challenge}.`;
-  }
-
-  return "I trust in my abilities and my capacity to learn and grow.";
-}
-
-// Generate a personalized goal from conversation
-function generatePersonalizedGoal(messages: ChatMessage[]): { title: string; description: string } {
-  const topics = extractTopics(messages);
-  const userMessages = messages.filter(m => m.role === 'user');
-
-  if (topics.specificGoals.length > 0) {
-    const goalText = topics.specificGoals[0];
-    return {
-      title: goalText.charAt(0).toUpperCase() + goalText.slice(0, 50),
-      description: `Based on our conversation, work towards ${goalText}.`,
-    };
-  }
-
-  if (topics.specificActivities.length > 0) {
-    const activity = topics.specificActivities[0];
-    return {
-      title: `Progress with ${activity}`,
-      description: `Continue developing your skills and practice with ${activity}.`,
-    };
-  }
-
-  if (topics.specificChallenges.length > 0) {
-    const challenge = topics.specificChallenges[0];
-    return {
-      title: `Overcome challenge`,
-      description: `Work on overcoming ${challenge} with steady progress.`,
-    };
-  }
-
-  return {
-    title: "Personal growth goal",
-    description: "Continue working on your personal development journey.",
+  const body = {
+    model: CLAUDE_MODEL,
+    max_tokens: MAX_TOKENS,
+    system: NEXTSELF_SYSTEM_PROMPT,
+    messages: prepared,
   };
-}
 
-// Generate short, supportive responses with structured question flow
-async function generateCoachResponse(messages: ChatMessage[], systemPrompt: string, userId?: string, supabaseClient?: any): Promise<string> {
-  const lastMessage = messages[messages.length - 1]?.content || '';
-  const lastMessageLower = lastMessage.toLowerCase();
-  const userMessages = messages.filter(m => m.role === 'user');
-  const assistantMessages = messages.filter(m => m.role === 'assistant');
-  const userMessageCount = userMessages.length;
+  const response = await fetch(ANTHROPIC_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': ANTHROPIC_API_VERSION,
+    },
+    body: JSON.stringify(body),
+  });
 
-  // Greeting - first message
-  if (userMessageCount === 1 && (lastMessageLower.includes('hello') || lastMessageLower.includes('hi') || lastMessageLower.includes('hey') || lastMessage.length < 20)) {
-    return "Hi! What's on your mind today?";
+  if (!response.ok) {
+    // Log only status + technical label, never the user's message content
+    const errStatus = response.status;
+    let errLabel = 'unknown_error';
+    try {
+      const errBody = await response.json();
+      errLabel = errBody?.error?.type || errBody?.type || 'unknown_error';
+    } catch {
+      // Response body wasn't JSON — keep generic label
+    }
+    console.error(`Anthropic API error: status=${errStatus} type=${errLabel}`);
+    throw new Error(`Anthropic API returned status ${errStatus}`);
   }
 
-  // Check if user is responding to goal/affirmation choice
-  if (assistantMessages.length > 0) {
-    const lastAssistantMessage = assistantMessages[assistantMessages.length - 1].content.toLowerCase();
+  const data = await response.json();
 
-    // User chose Affirmation
-    if (lastAssistantMessage.includes('affirmation or goal') && lastAssistantMessage.includes('please choose one')) {
-      if (lastMessageLower.includes('affirmation')) {
-        const affirmationText = generatePersonalizedAffirmation(messages);
+  const text = data?.content?.map((block: any) => block?.text || '').join('') || '';
 
-        // Save affirmation to database
-        if (userId && supabaseClient) {
-          try {
-            await supabaseClient
-              .from('affirmations')
-              .insert({
-                user_id: userId,
-                text: affirmationText,
-              });
-          } catch (error) {
-            console.error('Error saving affirmation:', error);
-          }
-        }
-
-        return `I've saved this affirmation for you: "${affirmationText}"`;
-      }
-
-      // User chose Goal
-      if (lastMessageLower.includes('goal')) {
-        const goalData = generatePersonalizedGoal(messages);
-
-        // Save goal to database
-        if (userId && supabaseClient) {
-          try {
-            await supabaseClient
-              .from('goals')
-              .insert({
-                user_id: userId,
-                title: goalData.title,
-                description: goalData.description,
-                type: 'progress',
-                status: 'active',
-                current: 0,
-                target: 1,
-              });
-          } catch (error) {
-            console.error('Error saving goal:', error);
-          }
-        }
-
-        return `I've created this goal for you: ${goalData.title}`;
-      }
-    }
-
-    // User said yes to creating goal/affirmation
-    if (lastAssistantMessage.includes('would you like to create') && (lastAssistantMessage.includes('goal') || lastAssistantMessage.includes('affirmation'))) {
-      if (lastMessageLower.includes('yes') || lastMessageLower.includes('sure') || lastMessageLower.includes('ok') || lastMessageLower.includes('please')) {
-        return "Great! I can help you with that. Would you like me to summarize your reflection into an affirmation or a goal statement? Please choose one: Affirmation or Goal";
-      }
-
-      if (lastMessageLower.includes('no') || lastMessageLower.includes('not') || lastMessageLower.includes('nah')) {
-        return "No problem! Let me know if I can help with any other interests.";
-      }
-    }
+  if (!text) {
+    console.error('Anthropic API returned empty content');
+    throw new Error('Empty response from Anthropic');
   }
 
-  // After user's 3rd-5th message, offer to create goal or affirmation
-  if (userMessageCount >= 3 && userMessageCount <= 5) {
-    const questionNumber = userMessageCount;
-
-    if (questionNumber === 5) {
-      return "Thank you for sharing all of that with me. Would you like to create a goal or affirmation based on what we've discussed?";
-    }
-
-    // Questions 1-4: Ask reflective questions with supportive feedback
-    const supportiveFeedback = [
-      "That's really insightful.",
-      "I appreciate you sharing that.",
-      "That takes courage to acknowledge.",
-      "I hear you.",
-      "That's meaningful.",
-      "Thank you for opening up.",
-    ];
-
-    const feedback = supportiveFeedback[Math.floor(Math.random() * supportiveFeedback.length)];
-    const question = generateReflectiveQuestions(messages, questionNumber);
-
-    return `${feedback} ${question}`;
-  }
-
-  // After question flow is complete, continue with general supportive responses
-  const responses = [
-    "Tell me more about that.",
-    "What else is on your mind?",
-    "How are you feeling about all of this now?",
-    "What support would help you most?",
-  ];
-
-  return responses[Math.floor(Math.random() * responses.length)];
+  return text;
 }
 
 Deno.serve(async (req: Request) => {
@@ -448,72 +332,39 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Parse request body
-    const { messages, systemPrompt, userId }: RequestBody = await req.json();
+    const { messages }: RequestBody = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
         JSON.stringify({ error: 'Invalid request: messages array required' }),
         {
           status: 400,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
 
-    // Create Supabase client for database operations
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Generate response using pattern matching
-    const responseText = await generateCoachResponse(messages, systemPrompt, userId, supabaseClient);
-
-    // Return response in Claude API format
-    const data = {
-      id: `msg_${Date.now()}`,
-      type: 'message',
-      role: 'assistant',
-      content: [
-        {
-          type: 'text',
-          text: responseText,
-        }
-      ],
-      model: 'coach-simulator',
-      stop_reason: 'end_turn',
-      usage: {
-        input_tokens: 0,
-        output_tokens: 0,
-      }
-    };
-
-    return new Response(
-      JSON.stringify(data),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  } catch (error) {
-    console.error('Error in ai-chat function:', error);
+    const replyText = await callClaude(messages);
 
     return new Response(
       JSON.stringify({
-        error: 'Failed to process chat request',
-        message: error.message
+        content: [{ type: 'text', text: replyText }],
       }),
       {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  } catch (error) {
+    // Log only the technical error name — never the user's message content
+    console.error(`Edge function error: ${error?.name || 'Error'} - ${error?.message || 'unknown'}`);
+
+    return new Response(
+      JSON.stringify({
+        content: [{ type: 'text', text: FRIENDLY_ERROR }],
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

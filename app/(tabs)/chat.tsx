@@ -13,7 +13,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../lib/supabase';
 
 const AI_CHAT_URL =
   'https://ypeadvaztfjxnarberhv.supabase.co/functions/v1/ai-chat';
@@ -32,7 +31,8 @@ export default function ChatScreen() {
     {
       id: '0',
       role: 'assistant',
-      content: "Hello! I'm your wellness coach. How can I support you today?",
+      content:
+        "Hi, I'm your NextSelf wellness coach. \u{1F331}\n\nIf one thing in your life could feel different a month from now \u2014 what would it be?",
     },
   ]);
 
@@ -65,17 +65,11 @@ export default function ChatScreen() {
     setLoading(true);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
       const payload = {
         messages: nextMessages.map((message) => ({
           role: message.role,
           content: message.content,
         })),
-        systemPrompt: 'You are a supportive wellness coach.',
-        userId: session?.user?.id,
       };
 
       const response = await fetch(AI_CHAT_URL, {
@@ -87,26 +81,22 @@ export default function ChatScreen() {
         body: JSON.stringify(payload),
       });
 
-      const responseText = await response.text();
-
       if (!response.ok) {
-        throw new Error(
-          `AI chat request failed with status ${response.status}: ${responseText}`
-        );
+        throw new Error(`AI chat request failed with status ${response.status}`);
       }
 
       let data;
 
       try {
-        data = JSON.parse(responseText);
+        data = await response.json();
       } catch {
         throw new Error('AI chat returned an invalid response.');
       }
 
       const replyText =
         data?.content?.[0]?.text ||
-        data?.reply ||
-        'Sorry, I could not process that. Please try again.';
+        data?.content ||
+        "I'm having trouble connecting right now. Please try again in a moment.";
 
       setMessages((prev) => [
         ...prev,
@@ -117,14 +107,12 @@ export default function ChatScreen() {
         },
       ]);
     } catch (error: any) {
-      console.error('AI CHAT ERROR:', error);
-
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Sorry, something went wrong. Please try again.',
+          content: "I'm having trouble connecting right now. Please try again in a moment.",
         },
       ]);
     } finally {
