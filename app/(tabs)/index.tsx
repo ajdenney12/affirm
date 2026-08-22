@@ -108,13 +108,26 @@ export default function AffirmationsScreen() {
       Alert.alert('Error', 'Please enter some text');
       return;
     }
+    if (!editingItem?.id) {
+      Alert.alert('Error', 'Could not identify which affirmation to update.');
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
         .from('affirmations')
         .update({ text: editText.trim() })
-        .eq('id', editingItem.id);
+        .eq('id', editingItem.id)
+        .eq('user_id', user.id)
+        .select();
+
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('This affirmation could not be updated. It may have been deleted.');
+      }
 
       setEditModalVisible(false);
       setEditingItem(null);
