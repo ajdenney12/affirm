@@ -13,12 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const AI_CHAT_URL =
-  'https://ypeadvaztfjxnarberhv.supabase.co/functions/v1/ai-chat';
-
-const AI_CHAT_KEY =
-  'sb_publishable_dlgfP7umzbbScdD4WZ4kwA_VQTIpVuv';
+import { supabase } from '../../lib/supabase';
 
 interface Message {
   id: string;
@@ -65,6 +60,12 @@ export default function ChatScreen() {
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No authenticated session');
+      }
+
       const payload = {
         messages: nextMessages.map((message) => ({
           role: message.role,
@@ -72,14 +73,18 @@ export default function ChatScreen() {
         })),
       };
 
-      const response = await fetch(AI_CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: AI_CHAT_KEY,
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${supabase.supabaseUrl}/functions/v1/ai-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: supabase.supabaseKey,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`AI chat request failed with status ${response.status}`);
@@ -318,41 +323,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    marginHorizontal: 16,
-    marginBottom: 116,
-    borderWidth: 1,
-    borderColor: '#EDE5FF',
   },
 
   input: {
     flex: 1,
+    minHeight: 44,
+    maxHeight: 100,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
     color: '#33215E',
-    maxHeight: 100,
     borderWidth: 1,
     borderColor: '#EDE5FF',
   },
 
   sendButton: {
-    borderRadius: 18,
+    borderRadius: 22,
     overflow: 'hidden',
   },
 
   sendButtonDisabled: {
-    opacity: 0.45,
+    opacity: 0.5,
   },
 
   sendGradient: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
   sendText: {

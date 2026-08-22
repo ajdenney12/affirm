@@ -246,19 +246,13 @@ interface RequestBody {
 
 const FRIENDLY_ERROR = "I'm having trouble connecting right now. Please try again in a moment.";
 
-/**
- * Strips leading assistant messages and trims history so the messages array
- * sent to Anthropic always starts with a user turn and stays within a sane length.
- */
 function prepareMessages(rawMessages: ChatMessage[]): ChatMessage[] {
   let msgs = [...rawMessages];
 
-  // Anthropic requires the first message to have role "user"
   while (msgs.length > 0 && msgs[0].role !== 'user') {
     msgs.shift();
   }
 
-  // Keep only the most recent conversation turns to control cost and context size
   if (msgs.length > MAX_HISTORY_MESSAGES) {
     msgs = msgs.slice(-MAX_HISTORY_MESSAGES);
   }
@@ -297,7 +291,6 @@ async function callClaude(messages: ChatMessage[]): Promise<string> {
   });
 
   if (!response.ok) {
-    // Log only status + technical label, never the user's message content
     const errStatus = response.status;
     let errLabel = 'unknown_error';
     try {
@@ -323,7 +316,6 @@ async function callClaude(messages: ChatMessage[]): Promise<string> {
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 200,
@@ -332,6 +324,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { messages }: RequestBody = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
@@ -355,7 +374,6 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    // Log only the technical error name — never the user's message content
     console.error(`Edge function error: ${error?.name || 'Error'} - ${error?.message || 'unknown'}`);
 
     return new Response(
