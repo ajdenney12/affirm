@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 
 interface Message {
   id: string;
@@ -74,13 +74,13 @@ export default function ChatScreen() {
       };
 
       const response = await fetch(
-        `${supabase.supabaseUrl}/functions/v1/ai-chat`,
+        `${supabaseUrl}/functions/v1/ai-chat`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
-            apikey: supabase.supabaseKey,
+            apikey: supabaseAnonKey,
           },
           body: JSON.stringify(payload),
         }
