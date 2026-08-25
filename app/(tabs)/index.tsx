@@ -34,6 +34,7 @@ export default function AffirmationsScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editText, setEditText] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const [newAffirmationText, setNewAffirmationText] = useState('');
 
   const [showAddGoalModal, setShowAddGoalModal] = useState(false);
@@ -113,28 +114,44 @@ export default function AffirmationsScreen() {
       return;
     }
 
+    setSavingEdit(true);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      console.log('[SaveEdit] rowId=' + editingItem.id + ' session=true');
 
       const { data, error } = await supabase
         .from('affirmations')
         .update({ text: editText.trim() })
         .eq('id', editingItem.id)
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.log('[SaveEdit] error code=' + error.code + ' message=' + error.message);
+        throw error;
+      }
+
+      const returnedRow = !!(data && data.length > 0);
+      console.log('[SaveEdit] returnedRow=' + returnedRow + ' count=' + (data?.length ?? 0));
+
       if (!data || data.length === 0) {
         throw new Error('This affirmation could not be updated. It may have been deleted.');
       }
 
+      setAffirmations((prev) =>
+        prev.map((a) => (a.id === editingItem.id ? { ...a, ...data[0] } : a))
+      );
+
       setEditModalVisible(false);
       setEditingItem(null);
       setEditText('');
-      await loadData();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to save changes');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -545,9 +562,9 @@ export default function AffirmationsScreen() {
                     >
                       <Text style={styles.modalButtonText}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.modalButtonConfirm} onPress={handleSaveEdit}>
+                    <TouchableOpacity style={styles.modalButtonConfirm} onPress={handleSaveEdit} disabled={savingEdit}>
                       <LinearGradient colors={['#7C4DEE', '#9B6DFF']} style={styles.buttonGradient}>
-                        <Text style={styles.buttonText}>Save</Text>
+                        <Text style={styles.buttonText}>{savingEdit ? 'Saving...' : 'Save'}</Text>
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
