@@ -14,7 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseUrl } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
 
 type GoalType = 'progress' | 'checklist' | 'yesno' | 'numeric';
@@ -162,17 +162,28 @@ export default function AffirmationsScreen() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[AddAffirm] session=' + !!session + ' url=' + supabaseUrl);
+      if (!session) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      console.log('[AddAffirm] userId=' + session.user.id);
+
+      const { data, error } = await supabase
         .from('affirmations')
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           text: newAffirmationText.trim(),
           timestamp: new Date().toISOString(),
-        });
-      if (error) throw error;
+        })
+        .select();
+
+      if (error) {
+        console.log('[AddAffirm] error code=' + error.code + ' message=' + error.message);
+        throw error;
+      }
+
+      const returnedRow = !!(data && data.length > 0);
+      console.log('[AddAffirm] returnedRow=' + returnedRow + ' count=' + (data?.length ?? 0));
 
       setNewAffirmationText('');
       await loadData();
