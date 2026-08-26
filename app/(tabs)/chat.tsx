@@ -144,7 +144,7 @@ export default function ChatScreen() {
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <ScrollView
             ref={scrollViewRef}
@@ -194,7 +194,7 @@ export default function ChatScreen() {
               style={styles.input}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Type a message..."
+              placeholder="Ask your NextSelf coach..."
               placeholderTextColor="#9CA3AF"
               multiline
               maxLength={500}
@@ -321,7 +321,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingBottom: 118,
     gap: 10,
   },
 
