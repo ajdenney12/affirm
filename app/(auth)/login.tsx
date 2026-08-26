@@ -76,6 +76,9 @@ export default function LoginScreen() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: 'nextself://',
+        },
       });
       if (error) throw error;
       Alert.alert('Success', 'Account created successfully!');

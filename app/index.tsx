@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import { setupAuthDeepLinkHandler } from '../lib/auth-deep-link';
 
 export default function Index() {
   const router = useRouter();
@@ -25,7 +26,12 @@ export default function Index() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    const cleanupDeepLink = setupAuthDeepLinkHandler();
+
+    return () => {
+      subscription.unsubscribe();
+      cleanupDeepLink();
+    };
   }, []);
 
   if (loading) {
