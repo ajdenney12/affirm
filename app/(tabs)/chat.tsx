@@ -127,25 +127,26 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <LinearGradient
-        colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']}
-        style={styles.gradient}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.title}>AI Coach</Text>
-              <Text style={styles.subtitle}>Your personal wellness guide</Text>
-            </View>
-            <View style={styles.headerBadge}><Ionicons name="sparkles" size={20} color="#FFFFFF" /></View>
-          </View>
-        </View>
+      <View style={styles.screen}>
+        <LinearGradient
+          colors={['#FFFFFF', '#F6F2FF', '#EDE5FF']}
+          style={styles.background}
+        />
 
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+          <View style={styles.header}>
+            <View style={styles.headerRow}>
+              <View>
+                <Text style={styles.title}>AI Coach</Text>
+                <Text style={styles.subtitle}>Your personal wellness guide</Text>
+              </View>
+              <View style={styles.headerBadge}><Ionicons name="sparkles" size={20} color="#FFFFFF" /></View>
+            </View>
+          </View>
+
           <ScrollView
             ref={scrollViewRef}
             style={styles.messageList}
@@ -220,7 +221,7 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -230,8 +231,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  gradient: {
+  screen: {
     flex: 1,
+  },
+
+  background: {
+    ...StyleSheet.absoluteFillObject,
   },
 
   flex: {
