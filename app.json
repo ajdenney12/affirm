@@ -4,7 +4,7 @@
     "slug": "nextself",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Nextself_app_icon_image.png",
     "scheme": "nextself",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
