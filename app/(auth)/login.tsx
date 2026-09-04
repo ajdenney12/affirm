@@ -27,8 +27,6 @@ export default function LoginScreen() {
   const [showDisclaimers, setShowDisclaimers] = useState(false);
 
     const handleLogin = async () => {
-      console.log('LOGIN BUTTON PRESSED');
-
       if (!email || !password) {
         Alert.alert('Error', 'Please fill in all fields');
         return;
@@ -42,16 +40,10 @@ export default function LoginScreen() {
           password,
         });
 
-        if (error) {
-          console.error('LOGIN ERROR:', error);
-          throw error;
-        }
-
-        console.log('LOGIN SUCCESS:', data.user?.email);
+        if (error) throw error;
 
         router.replace('/(tabs)');
       } catch (error: any) {
-        console.error('LOGIN FAILED:', error);
         Alert.alert('Login Error', error.message || 'An error occurred');
       } finally {
         setLoading(false);
@@ -97,7 +89,9 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'nextself://',
+      });
       if (error) throw error;
       Alert.alert('Success', 'Password reset email sent! Check your inbox.');
       setIsForgotPassword(false);

@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
 type SessionEstablishedCallback = () => void;
+type RecoveryEstablishedCallback = () => void;
 
 function parseTokenFromUrl(url: string): {
   accessToken: string | null;
@@ -30,9 +31,10 @@ function parseTokenFromUrl(url: string): {
 
 async function handleAuthUrl(
   url: string,
-  onSessionEstablished?: SessionEstablishedCallback
+  onSessionEstablished?: SessionEstablishedCallback,
+  onRecoveryEstablished?: RecoveryEstablishedCallback
 ): Promise<void> {
-  const { accessToken, refreshToken } = parseTokenFromUrl(url);
+  const { accessToken, refreshToken, type } = parseTokenFromUrl(url);
 
   if (!accessToken || !refreshToken) {
     return;
@@ -47,13 +49,16 @@ async function handleAuthUrl(
     return;
   }
 
-  if (onSessionEstablished) {
+  if (type === 'recovery' && onRecoveryEstablished) {
+    onRecoveryEstablished();
+  } else if (onSessionEstablished) {
     onSessionEstablished();
   }
 }
 
 export function setupAuthDeepLinkHandler(
-  onSessionEstablished?: SessionEstablishedCallback
+  onSessionEstablished?: SessionEstablishedCallback,
+  onRecoveryEstablished?: RecoveryEstablishedCallback
 ): () => void {
   if (Platform.OS === 'web') {
     return () => {};
@@ -61,12 +66,12 @@ export function setupAuthDeepLinkHandler(
 
   Linking.getInitialURL().then((url) => {
     if (url) {
-      handleAuthUrl(url, onSessionEstablished);
+      handleAuthUrl(url, onSessionEstablished, onRecoveryEstablished);
     }
   });
 
   const subscription = Linking.addEventListener('url', ({ url }) => {
-    handleAuthUrl(url, onSessionEstablished);
+    handleAuthUrl(url, onSessionEstablished, onRecoveryEstablished);
   });
 
   return () => {

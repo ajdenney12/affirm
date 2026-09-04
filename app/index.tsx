@@ -9,6 +9,8 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isRecoverySession = false;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace('/(tabs)');
@@ -19,6 +21,16 @@ export default function Index() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isRecoverySession) {
+        isRecoverySession = false;
+        if (session) {
+          router.replace('/(auth)/reset-password');
+        } else {
+          router.replace('/(auth)/login');
+        }
+        return;
+      }
+
       if (session) {
         router.replace('/(tabs)');
       } else {
@@ -26,7 +38,13 @@ export default function Index() {
       }
     });
 
-    const cleanupDeepLink = setupAuthDeepLinkHandler();
+    const cleanupDeepLink = setupAuthDeepLinkHandler(
+      undefined,
+      () => {
+        isRecoverySession = true;
+        router.replace('/(auth)/reset-password');
+      }
+    );
 
     return () => {
       subscription.unsubscribe();
