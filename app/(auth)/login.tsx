@@ -19,8 +19,8 @@ export default function LoginScreen() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [email, setEmail] = useState('ajordan12@gmail.com');
-  const [password, setPassword] = useState('Welcome1');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);

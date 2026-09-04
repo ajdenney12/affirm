@@ -14,7 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase, supabaseUrl } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
 
 type GoalType = 'progress' | 'checklist' | 'yesno' | 'numeric';
@@ -120,8 +120,6 @@ export default function AffirmationsScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      console.log('[SaveEdit] rowId=' + editingItem.id + ' session=true');
-
       const { data, error } = await supabase
         .from('affirmations')
         .update({ text: editText.trim() })
@@ -129,13 +127,7 @@ export default function AffirmationsScreen() {
         .eq('user_id', session.user.id)
         .select();
 
-      if (error) {
-        console.log('[SaveEdit] error code=' + error.code + ' message=' + error.message);
-        throw error;
-      }
-
-      const returnedRow = !!(data && data.length > 0);
-      console.log('[SaveEdit] returnedRow=' + returnedRow + ' count=' + (data?.length ?? 0));
+      if (error) throw error;
 
       if (!data || data.length === 0) {
         throw new Error('This affirmation could not be updated. It may have been deleted.');
@@ -163,12 +155,9 @@ export default function AffirmationsScreen() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('[AddAffirm] session=' + !!session + ' url=' + supabaseUrl);
       if (!session) throw new Error('Not authenticated');
 
-      console.log('[AddAffirm] userId=' + session.user.id);
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('affirmations')
         .insert({
           user_id: session.user.id,
@@ -177,13 +166,7 @@ export default function AffirmationsScreen() {
         })
         .select();
 
-      if (error) {
-        console.log('[AddAffirm] error code=' + error.code + ' message=' + error.message);
-        throw error;
-      }
-
-      const returnedRow = !!(data && data.length > 0);
-      console.log('[AddAffirm] returnedRow=' + returnedRow + ' count=' + (data?.length ?? 0));
+      if (error) throw error;
 
       setNewAffirmationText('');
       await loadData();
