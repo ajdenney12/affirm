@@ -13,9 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
+import { useSubscription } from '../../contexts/SubscriptionContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { isPremium } = useSubscription();
   const [userEmail, setUserEmail] = useState('');
   const [showDisclaimers, setShowDisclaimers] = useState(false);
 
@@ -61,6 +63,17 @@ export default function SettingsScreen() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Subscription</Text>
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <View style={styles.rowIcon}><Ionicons name="card-outline" size={18} color="#6B3FC6" /></View>
+                <Text style={styles.infoLabel}>Plan</Text>
+                <Text style={styles.infoValue}>{isPremium ? 'Premium' : 'Free'}</Text>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Account</Text>
             <View style={styles.card}>

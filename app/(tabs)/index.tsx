@@ -16,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import Paywall from '../../components/Paywall';
 
 type GoalType = 'progress' | 'checklist' | 'yesno' | 'numeric';
 
@@ -26,8 +28,11 @@ interface ChecklistItem {
 }
 
 
+const FREE_AFFIRMATION_LIMIT = 5;
+
 export default function AffirmationsScreen() {
   const router = useRouter();
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
   const [affirmations, setAffirmations] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +50,7 @@ export default function AffirmationsScreen() {
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [goalLoading, setGoalLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -150,6 +156,11 @@ export default function AffirmationsScreen() {
   const handleAddAffirmation = async () => {
     if (!newAffirmationText.trim()) {
       Alert.alert('Error', 'Please enter an affirmation');
+      return;
+    }
+
+    if (!isPremium && affirmations.length >= FREE_AFFIRMATION_LIMIT) {
+      setShowPaywall(true);
       return;
     }
 
@@ -480,48 +491,70 @@ export default function AffirmationsScreen() {
             </View>
           </View>
 
-          {/* Today's Goals Section */}
-          <View style={styles.sectionBox}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleRow}>
-                <View style={styles.sectionIcon}><Ionicons name="flag-outline" size={18} color="#7C4DEE" /></View>
-                <Text style={styles.sectionTitle}>Today's Goals</Text>
-              </View>
-              <Text style={styles.sectionCount}>{goals.length}</Text>
-            </View>
-
-            <View style={styles.scrollBox}>
-              {goals.length === 0 ? (
-                <View style={styles.innerEmpty}>
-                  <Ionicons name="flag-outline" size={36} color="#C9B8F0" />
-                  <Text style={styles.innerEmptyText}>No goals yet</Text>
-                  <Text style={styles.innerEmptySub}>Add your first one below</Text>
+          {/* Today's Goals Section — premium only */}
+          {isPremium && (
+            <View style={styles.sectionBox}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionTitleRow}>
+                  <View style={styles.sectionIcon}><Ionicons name="flag-outline" size={18} color="#7C4DEE" /></View>
+                  <Text style={styles.sectionTitle}>Today's Goals</Text>
                 </View>
-              ) : (
-                <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBoxContent}>
-                  {goals.map(renderGoalRow)}
-                </ScrollView>
-              )}
-            </View>
-
-            <TouchableOpacity style={styles.addGoalBtn} onPress={() => setShowAddGoalModal(true)}>
-              <Ionicons name="add-circle-outline" size={20} color="#7C4DEE" />
-              <Text style={styles.addGoalBtnText}>Add New Goal</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* AI Coach shortcut */}
-          <TouchableOpacity style={styles.coachCard} onPress={() => router.push('/(tabs)/chat')} activeOpacity={0.85}>
-            <View style={styles.coachLeft}>
-              <View style={styles.coachIcon}><Ionicons name="chatbubble-ellipses" size={22} color="#FFFFFF" /></View>
-              <View>
-                <Text style={styles.coachTitle}>AI Coach</Text>
-                <Text style={styles.coachSub}>Talk to your wellness guide</Text>
+                <Text style={styles.sectionCount}>{goals.length}</Text>
               </View>
+
+              <View style={styles.scrollBox}>
+                {goals.length === 0 ? (
+                  <View style={styles.innerEmpty}>
+                    <Ionicons name="flag-outline" size={36} color="#C9B8F0" />
+                    <Text style={styles.innerEmptyText}>No goals yet</Text>
+                    <Text style={styles.innerEmptySub}>Add your first one below</Text>
+                  </View>
+                ) : (
+                  <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBoxContent}>
+                    {goals.map(renderGoalRow)}
+                  </ScrollView>
+                )}
+              </View>
+
+              <TouchableOpacity style={styles.addGoalBtn} onPress={() => setShowAddGoalModal(true)}>
+                <Ionicons name="add-circle-outline" size={20} color="#7C4DEE" />
+                <Text style={styles.addGoalBtnText}>Add New Goal</Text>
+              </TouchableOpacity>
             </View>
-            <Ionicons name="chevron-forward" size={22} color="#B5A8D0" />
-          </TouchableOpacity>
+          )}
+
+          {/* AI Coach shortcut — premium only */}
+          {isPremium && (
+            <TouchableOpacity style={styles.coachCard} onPress={() => router.push('/(tabs)/chat')} activeOpacity={0.85}>
+              <View style={styles.coachLeft}>
+                <View style={styles.coachIcon}><Ionicons name="chatbubble-ellipses" size={22} color="#FFFFFF" /></View>
+                <View>
+                  <Text style={styles.coachTitle}>AI Coach</Text>
+                  <Text style={styles.coachSub}>Talk to your wellness guide</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color="#B5A8D0" />
+            </TouchableOpacity>
+          )}
         </ScrollView>
+
+        {/* Paywall Modal — shown when free user hits affirmation limit */}
+        <Modal
+          visible={showPaywall}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPaywall(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.paywallOverlay}
+            onPress={() => setShowPaywall(false)}
+          >
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <Paywall featureLabel="Unlimited affirmations" />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
 
         {/* Edit Affirmation Modal */}
         <Modal
@@ -867,6 +900,7 @@ const styles = StyleSheet.create({
   coachTitle: { fontSize: 16, fontWeight: '700', color: INK },
   coachSub: { fontSize: 13, color: INK_SOFT, marginTop: 2 },
 
+  paywallOverlay: { flex: 1, backgroundColor: 'rgba(50,30,90,0.5)' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(50,30,90,0.4)', justifyContent: 'flex-end' },
   modalContent: {
     backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28,

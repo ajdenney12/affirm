@@ -14,6 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import Paywall from '../../components/Paywall';
 
 interface Message {
   id: string;
@@ -22,6 +24,7 @@ interface Message {
 }
 
 export default function ChatScreen() {
+  const { isPremium } = useSubscription();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
@@ -124,6 +127,10 @@ export default function ChatScreen() {
       setLoading(false);
     }
   };
+
+  if (!isPremium) {
+    return <Paywall featureLabel="AI Coach access" />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

@@ -15,6 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import Paywall from '../../components/Paywall';
 
 type GoalType = 'progress' | 'checklist' | 'yesno' | 'numeric';
 
@@ -25,6 +27,7 @@ interface ChecklistItem {
 }
 
 export default function GoalsScreen() {
+  const { isPremium } = useSubscription();
   const [goals, setGoals] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState('');
@@ -209,6 +212,10 @@ export default function GoalsScreen() {
   const removeChecklistItem = (id: string) => {
     setChecklistItems(checklistItems.filter(item => item.id !== id));
   };
+
+  if (!isPremium) {
+    return <Paywall featureLabel="Goal setting & progress tracking" />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
