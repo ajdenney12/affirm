@@ -6,7 +6,13 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
+import {
+  isRevenueCatInitialized,
+  ENTITLEMENT_ID,
+} from '../lib/revenuecat';
+import Purchases from 'react-native-purchases';
 
 interface SubscriptionContextValue {
   isPremium: boolean;
@@ -20,41 +26,28 @@ const SubscriptionContext = createContext<SubscriptionContextValue>({
   refreshSubscription: async () => {},
 });
 
+function checkEntitlement(info: Awaited<ReturnType<typeof Purchases.getCustomerInfo>>): boolean {
+  return Boolean(info?.entitlements?.active?.[ENTITLEMENT_ID]);
+}
+
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
 
   const refreshSubscription = useCallback(async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        if (mountedRef.current) {
-          setIsPremium(false);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('is_premium')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        if (mountedRef.current) {
-          setIsPremium(false);
-          setLoading(false);
-        }
-        return;
-      }
-
+    if (Platform.OS !== 'ios' || !isRevenueCatInitialized()) {
       if (mountedRef.current) {
-        setIsPremium(Boolean(data?.is_premium));
+        setIsPremium(false);
+        setLoading(false);
+      }
+      return;
+    }
+
+    try {
+      const info = await Purchases.getCustomerInfo();
+      if (mountedRef.current) {
+        setIsPremium(checkEntitlement(info));
         setLoading(false);
       }
     } catch {
@@ -69,6 +62,22 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     mountedRef.current = true;
 
     refreshSubscription();
+
+    let listener: ((info: Awaited<ReturnType<typeof Purchases.getCustomerInfo>>) => void) | null = null;
+
+    if (Platform.OS === 'ios' && isRevenueCatInitialized()) {
+      try {
+        listener = (info) => {
+          if (mountedRef.current) {
+            setIsPremium(checkEntitlement(info));
+            setLoading(false);
+          }
+        };
+        Purchases.addCustomerInfoUpdateListener(listener);
+      } catch {
+        // Listener registration failed — refreshSubscription still works manually
+      }
+    }
 
     const {
       data: { subscription },
@@ -86,6 +95,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return () => {
       mountedRef.current = false;
       subscription.unsubscribe();
+      if (listener) {
+        try {
+          Purchases.removeCustomerInfoUpdateListener(listener);
+        } catch {
+          // Best-effort cleanup
+        }
+      }
     };
   }, [refreshSubscription]);
 
