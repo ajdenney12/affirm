@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import Purchases from 'react-native-purchases';
 
-const ENTITLEMENT_ID = 'premium';
+const ENTITLEMENT_ID = 'nextself_pro';
 
 let isInitialized = false;
 
