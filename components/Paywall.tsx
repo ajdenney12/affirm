@@ -23,11 +23,27 @@ interface PaywallProps {
 }
 
 export default function Paywall({ featureLabel }: PaywallProps) {
-  const { purchaseAnnual, restorePurchases, annualPackage, purchaseLoading } =
+  const { purchaseAnnual, restorePurchases, annualPackage, purchaseLoading, trialEligible } =
     useSubscription();
   const [localError, setLocalError] = useState<string | null>(null);
 
   const displayPrice = annualPackage?.localizedPrice ?? '$9.99';
+
+  const isTrialEligible = trialEligible === true;
+
+  const ctaButtonText = purchaseLoading
+    ? 'Processing...'
+    : isTrialEligible
+      ? 'Start 7-Day Free Trial'
+      : 'Continue with Premium';
+
+  const trialBannerText = isTrialEligible
+    ? 'Try Premium free for 7 days'
+    : 'Unlock all Premium features';
+
+  const priceTrialText = isTrialEligible
+    ? `7 days free, then ${displayPrice}/year`
+    : `${displayPrice}/year`;
 
   const handleStartTrial = async () => {
     setLocalError(null);
@@ -82,7 +98,7 @@ export default function Paywall({ featureLabel }: PaywallProps) {
 
           <View style={styles.trialBanner}>
             <Ionicons name="gift-outline" size={20} color={PURPLE} />
-            <Text style={styles.trialBannerText}>Try Premium free for 7 days</Text>
+            <Text style={styles.trialBannerText}>{trialBannerText}</Text>
           </View>
 
           <View style={styles.featuresCard}>
@@ -106,7 +122,7 @@ export default function Paywall({ featureLabel }: PaywallProps) {
           <View style={styles.priceCard}>
             <Text style={styles.pricePrice}>{displayPrice}</Text>
             <Text style={styles.pricePeriod}>per year</Text>
-            <Text style={styles.priceTrial}>7 days free, then {displayPrice}/year</Text>
+            <Text style={styles.priceTrial}>{priceTrialText}</Text>
           </View>
 
           <View style={styles.ctaSection}>
@@ -121,7 +137,7 @@ export default function Paywall({ featureLabel }: PaywallProps) {
                 style={styles.trialButtonGradient}
               >
                 <Text style={styles.trialButtonText}>
-                  {purchaseLoading ? 'Processing...' : 'Start 7-Day Free Trial'}
+                  {ctaButtonText}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

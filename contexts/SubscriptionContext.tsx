@@ -18,6 +18,7 @@ import { PURCHASES_ERROR_CODE } from 'react-native-purchases';
 export interface AnnualPackageInfo {
   priceString: string;
   localizedPrice: string;
+  productId: string;
 }
 
 interface PurchaseResult {
@@ -34,6 +35,7 @@ interface SubscriptionContextValue {
   restorePurchases: () => Promise<PurchaseResult>;
   annualPackage: AnnualPackageInfo | null;
   purchaseLoading: boolean;
+  trialEligible: boolean | null;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextValue>({
@@ -44,6 +46,7 @@ const SubscriptionContext = createContext<SubscriptionContextValue>({
   restorePurchases: async () => ({ success: false, cancelled: false }),
   annualPackage: null,
   purchaseLoading: false,
+  trialEligible: null,
 });
 
 type CustomerInfo = Awaited<ReturnType<typeof Purchases.getCustomerInfo>>;
@@ -74,6 +77,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
   const [annualPackage, setAnnualPackage] = useState<AnnualPackageInfo | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const [trialEligible, setTrialEligible] = useState<boolean | null>(null);
   const mountedRef = useRef(true);
 
   const fetchOfferings = useCallback(async () => {
@@ -88,11 +92,33 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       if (!annual) return;
 
       const product = annual.product;
+      const productId = product.identifier;
+
       if (mountedRef.current) {
         setAnnualPackage({
           priceString: product.priceString,
           localizedPrice: product.priceString,
+          productId,
         });
+      }
+
+      try {
+        const eligibilityMap =
+          await Purchases.checkTrialOrIntroductoryPriceEligibility([productId]);
+        const eligibility = eligibilityMap[productId];
+        if (mountedRef.current) {
+          if (eligibility?.status === Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE) {
+            setTrialEligible(true);
+          } else if (eligibility?.status === Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE) {
+            setTrialEligible(false);
+          } else {
+            setTrialEligible(null);
+          }
+        }
+      } catch {
+        if (mountedRef.current) {
+          setTrialEligible(null);
+        }
       }
     } catch {
       // Offerings fetch failed — paywall will fall back to default price display
@@ -256,6 +282,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         restorePurchases,
         annualPackage,
         purchaseLoading,
+        trialEligible,
       }}
     >
       {children}
