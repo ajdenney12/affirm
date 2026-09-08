@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 const PURPLE = '#7C4DEE';
 const PURPLE_LIGHT = '#9B6DFF';
@@ -22,26 +23,27 @@ interface PaywallProps {
 }
 
 export default function Paywall({ featureLabel }: PaywallProps) {
-  const [actionLoading, setActionLoading] = useState(false);
+  const { purchaseAnnual, restorePurchases, annualPackage, purchaseLoading } =
+    useSubscription();
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleStartTrial = () => {
-    Alert.alert(
-      'Subscription setup coming next',
-      'In-app purchases will be available soon. Thank you for your interest in NextSelf Premium!',
-      [{ text: 'OK' }]
-    );
+  const displayPrice = annualPackage?.localizedPrice ?? '$9.99';
+
+  const handleStartTrial = async () => {
+    setLocalError(null);
+    const result = await purchaseAnnual();
+    if (result.cancelled) return;
+    if (!result.success && result.error) {
+      Alert.alert('Purchase Failed', result.error, [{ text: 'OK' }]);
+    }
   };
 
-  const handleRestore = () => {
-    setActionLoading(true);
-    setTimeout(() => {
-      setActionLoading(false);
-      Alert.alert(
-        'Subscription setup coming next',
-        'Restore purchases will be available once in-app billing is configured.',
-        [{ text: 'OK' }]
-      );
-    }, 600);
+  const handleRestore = async () => {
+    setLocalError(null);
+    const result = await restorePurchases();
+    if (!result.success && result.error) {
+      Alert.alert('Restore Failed', result.error, [{ text: 'OK' }]);
+    }
   };
 
   const features = [
@@ -102,32 +104,35 @@ export default function Paywall({ featureLabel }: PaywallProps) {
           </View>
 
           <View style={styles.priceCard}>
-            <Text style={styles.pricePrice}>$9.99</Text>
+            <Text style={styles.pricePrice}>{displayPrice}</Text>
             <Text style={styles.pricePeriod}>per year</Text>
-            <Text style={styles.priceTrial}>7 days free, then $9.99/year</Text>
+            <Text style={styles.priceTrial}>7 days free, then {displayPrice}/year</Text>
           </View>
 
           <View style={styles.ctaSection}>
             <TouchableOpacity
               style={styles.trialButton}
               onPress={handleStartTrial}
+              disabled={purchaseLoading}
               activeOpacity={0.85}
             >
               <LinearGradient
                 colors={[PURPLE, PURPLE_LIGHT]}
                 style={styles.trialButtonGradient}
               >
-                <Text style={styles.trialButtonText}>Start 7-Day Free Trial</Text>
+                <Text style={styles.trialButtonText}>
+                  {purchaseLoading ? 'Processing...' : 'Start 7-Day Free Trial'}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.restoreButton}
               onPress={handleRestore}
-              disabled={actionLoading}
+              disabled={purchaseLoading}
             >
               <Text style={styles.restoreButtonText}>
-                {actionLoading ? 'Restoring...' : 'Restore Purchases'}
+                {purchaseLoading ? 'Restoring...' : 'Restore Purchases'}
               </Text>
             </TouchableOpacity>
           </View>
