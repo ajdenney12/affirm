@@ -4,6 +4,8 @@ import Purchases from 'react-native-purchases';
 
 const ENTITLEMENT_ID = 'nextself_pro';
 
+type CustomerInfo = Awaited<ReturnType<typeof Purchases.getCustomerInfo>>;
+
 let isInitialized = false;
 
 function getApiKey(): string | null {
@@ -34,17 +36,22 @@ export async function initRevenueCat(): Promise<void> {
   }
 }
 
-export async function linkRevenueCatUser(userId: string): Promise<void> {
-  if (Platform.OS !== 'ios' || !isInitialized) return;
+export async function linkRevenueCatUser(userId: string): Promise<CustomerInfo | null> {
+  if (Platform.OS !== 'ios' || !isInitialized) return null;
 
   try {
-    await Purchases.logIn(userId);
+    const result = await Purchases.logIn(userId);
+    return result.customerInfo;
   } catch (error) {
-    // LogIn throws if the user is already logged in with the same ID — safe to ignore
     const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes('already logged in')) {
-      // Silently ignore other errors — entitlement checks will handle the fallback
+    if (message.includes('already logged in')) {
+      try {
+        return await Purchases.getCustomerInfo();
+      } catch {
+        return null;
+      }
     }
+    return null;
   }
 }
 

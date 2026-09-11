@@ -9,6 +9,9 @@ import React, {
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import {
+  initRevenueCat,
+  linkRevenueCatUser,
+  logoutRevenueCatUser,
   isRevenueCatInitialized,
   ENTITLEMENT_ID,
 } from '../lib/revenuecat';
@@ -226,42 +229,65 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     mountedRef.current = true;
 
-    refreshSubscription();
-    fetchOfferings();
-
     let listener: ((info: CustomerInfo) => void) | null = null;
+    let authUnsubscribe: (() => void) | null = null;
 
-    if (Platform.OS === 'ios' && isRevenueCatInitialized()) {
-      try {
-        listener = (info) => {
-          if (mountedRef.current) {
-            setIsPremium(checkEntitlement(info));
-            setLoading(false);
-          }
-        };
-        Purchases.addCustomerInfoUpdateListener(listener);
-      } catch {
-        // Listener registration failed — refreshSubscription still works manually
-      }
-    }
+    (async () => {
+      await initRevenueCat();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        refreshSubscription();
-        fetchOfferings();
-      } else {
-        if (mountedRef.current) {
-          setIsPremium(false);
-          setLoading(false);
+      if (Platform.OS === 'ios' && isRevenueCatInitialized()) {
+        try {
+          listener = (info) => {
+            if (mountedRef.current) {
+              setIsPremium(checkEntitlement(info));
+              setLoading(false);
+            }
+          };
+          Purchases.addCustomerInfoUpdateListener(listener);
+        } catch {
+          // Listener registration failed — manual refresh still works
         }
       }
-    });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mountedRef.current) return;
+
+      if (session?.user?.id) {
+        const info = await linkRevenueCatUser(session.user.id);
+        if (mountedRef.current) {
+          setIsPremium(checkEntitlement(info));
+          setLoading(false);
+        }
+      } else if (mountedRef.current) {
+        setLoading(false);
+      }
+
+      fetchOfferings();
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (_event, authSession) => {
+          if (authSession?.user?.id) {
+            const info = await linkRevenueCatUser(authSession.user.id);
+            if (mountedRef.current) {
+              setIsPremium(checkEntitlement(info));
+              setLoading(false);
+            }
+            fetchOfferings();
+          } else {
+            await logoutRevenueCatUser();
+            if (mountedRef.current) {
+              setIsPremium(false);
+              setLoading(false);
+            }
+          }
+        }
+      );
+      authUnsubscribe = () => subscription.unsubscribe();
+    })();
 
     return () => {
       mountedRef.current = false;
-      subscription.unsubscribe();
+      if (authUnsubscribe) authUnsubscribe();
       if (listener) {
         try {
           Purchases.removeCustomerInfoUpdateListener(listener);
@@ -270,7 +296,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         }
       }
     };
-  }, [refreshSubscription, fetchOfferings]);
+  }, [fetchOfferings]);
 
   return (
     <SubscriptionContext.Provider
