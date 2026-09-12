@@ -20,6 +20,7 @@ export default function SettingsScreen() {
   const { isPremium } = useSubscription();
   const [userEmail, setUserEmail] = useState('');
   const [showDisclaimers, setShowDisclaimers] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadUserInfo();
@@ -30,6 +31,41 @@ export default function SettingsScreen() {
     if (user) {
       setUserEmail(user.email || '');
     }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your NextSelf account and all app data, including your affirmations and goals. This action cannot be undone.\n\nDeleting your NextSelf account does not cancel an Apple App Store subscription. If you have an active subscription, you must cancel it separately through Apple Settings > Apple ID > Subscriptions.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Account',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const { error } = await supabase.functions.invoke('delete-account', {
+                method: 'POST',
+              });
+
+              if (error) {
+                throw error;
+              }
+
+              await supabase.auth.signOut();
+              router.replace('/(auth)/login');
+            } catch {
+              setIsDeleting(false);
+              Alert.alert(
+                'Deletion Failed',
+                'Unable to delete account. Please try again.'
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleLogout = async () => {
@@ -101,6 +137,21 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
               <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              disabled={isDeleting}
+              style={[
+                styles.deleteButton,
+                isDeleting && styles.deleteButtonDisabled,
+              ]}
+            >
+              <Text style={styles.deleteButtonText}>
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -258,6 +309,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#7C4DEE',
+  },
+  deleteButton: {
+    backgroundColor: '#FFF1F1',
+    borderWidth: 1,
+    borderColor: '#FCDADA',
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#DC2626',
   },
   modalOverlay: {
     flex: 1,
