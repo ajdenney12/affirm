@@ -15,6 +15,19 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      {
+        status: 405,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
+
   try {
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
@@ -74,7 +87,7 @@ Deno.serve(async (req: Request) => {
     if (deleteError) {
       console.error('Error deleting user:', deleteError);
       return new Response(
-        JSON.stringify({ error: 'Failed to delete account', details: deleteError.message }),
+        JSON.stringify({ error: 'Unable to delete account. Please try again.' }),
         {
           status: 500,
           headers: {
@@ -98,7 +111,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('Error in delete-account function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Unable to delete account. Please try again.' }),
       {
         status: 500,
         headers: {
