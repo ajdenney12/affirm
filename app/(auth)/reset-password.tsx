@@ -33,15 +33,16 @@ export default function ResetPasswordScreen() {
 
     const establishRecoverySession = async (url: string) => {
       if (handled) return;
-      handled = true;
 
       const { accessToken, refreshToken, type } = parseTokenFromUrl(url);
 
-      if (!accessToken || !refreshToken) {
+      if (!accessToken || !refreshToken || type !== 'recovery') {
         setInitializing(false);
         setInitError('This password reset link is invalid or incomplete. Please request a new reset link from the login screen.');
         return;
       }
+
+      handled = true;
 
       const { error } = await supabase.auth.setSession({
         access_token: accessToken,
