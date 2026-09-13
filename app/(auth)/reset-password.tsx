@@ -31,8 +31,52 @@ export default function ResetPasswordScreen() {
   useEffect(() => {
     let handled = false;
 
+    const logSanitizedUrlDebug = (rawUrl: string) => {
+      let parsed: URL;
+      try {
+        parsed = new URL(rawUrl);
+      } catch {
+        console.log(
+          `[PASSWORD_RESET_DEEPLINK_DEBUG] URL could not be parsed by new URL(). ` +
+            `encoded%23=${rawUrl.includes('%23')} ` +
+            `encoded%2523=${rawUrl.includes('%2523')}`
+        );
+        return;
+      }
+
+      const queryParams = parsed.searchParams;
+      const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+
+      const hasCode = !!queryParams.get('code') || !!hashParams.get('code');
+      const hasAccessToken = !!queryParams.get('access_token') || !!hashParams.get('access_token');
+      const hasRefreshToken = !!queryParams.get('refresh_token') || !!hashParams.get('refresh_token');
+      const typeValue = queryParams.get('type') || hashParams.get('type');
+      const hasError = !!queryParams.get('error') || !!hashParams.get('error');
+      const errorCodeValue =
+        queryParams.get('error_code') || hashParams.get('error_code');
+      const hasEncoded23 = rawUrl.includes('%23');
+      const hasEncoded2523 = rawUrl.includes('%2523');
+
+      console.log(
+        `[PASSWORD_RESET_DEEPLINK_DEBUG] ` +
+          `scheme=${parsed.protocol} ` +
+          `pathname=${parsed.pathname} ` +
+          `host=${parsed.host} ` +
+          `hasCode=${hasCode} ` +
+          `hasAccessToken=${hasAccessToken} ` +
+          `hasRefreshToken=${hasRefreshToken} ` +
+          `type=${typeValue} ` +
+          `hasError=${hasError} ` +
+          `error_code=${errorCodeValue} ` +
+          `encoded%23=${hasEncoded23} ` +
+          `encoded%2523=${hasEncoded2523}`
+      );
+    };
+
     const establishRecoverySession = async (url: string) => {
       if (handled) return;
+
+      logSanitizedUrlDebug(url);
 
       const { accessToken, refreshToken, type } = parseTokenFromUrl(url);
 
