@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Linking from 'expo-linking';
 import { supabase } from '../../lib/supabase';
+import { parseTokenFromUrl } from '../../lib/auth-deep-link';
 import { useRouter } from 'expo-router';
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -21,6 +24,57 @@ export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let handled = false;
+
+    const establishRecoverySession = async (url: string) => {
+      if (handled) return;
+      handled = true;
+
+      const { accessToken, refreshToken, type } = parseTokenFromUrl(url);
+
+      if (!accessToken || !refreshToken) {
+        setInitializing(false);
+        setInitError('This password reset link is invalid or incomplete. Please request a new reset link from the login screen.');
+        return;
+      }
+
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error) {
+        setInitializing(false);
+        setInitError('This password reset link has expired. Please request a new reset link from the login screen.');
+        return;
+      }
+
+      setSessionReady(true);
+      setInitializing(false);
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        establishRecoverySession(url);
+      } else {
+        setInitializing(false);
+        setInitError('This password reset link is invalid. Please request a new reset link from the login screen.');
+      }
+    });
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      establishRecoverySession(url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const handleResetPassword = async () => {
     if (!newPassword || !confirmPassword) {
@@ -79,6 +133,30 @@ export default function ResetPasswordScreen() {
     }
   };
 
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#7C4DEE" />
+      </View>
+    );
+  }
+
+  if (initError) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.initErrorText}>{initError}</Text>
+        <TouchableOpacity
+          onPress={() => router.replace('/(auth)/login')}
+          style={styles.errorBackButton}
+        >
+          <LinearGradient colors={['#7C4DEE', '#9B6DFF']} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>Back to Login</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -131,7 +209,7 @@ export default function ResetPasswordScreen() {
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleResetPassword}
-                disabled={loading}
+                disabled={loading || !sessionReady}
               >
                 <LinearGradient
                   colors={['#7C4DEE', '#9B6DFF']}
@@ -249,5 +327,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#9B6DFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F6F2FF',
+    padding: 32,
+  },
+  initErrorText: {
+    fontSize: 16,
+    color: '#7C4DEE',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  errorBackButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 });

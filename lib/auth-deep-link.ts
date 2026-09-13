@@ -5,7 +5,7 @@ import { supabase } from './supabase';
 type SessionEstablishedCallback = () => void;
 type RecoveryEstablishedCallback = () => void;
 
-function parseTokenFromUrl(url: string): {
+export function parseTokenFromUrl(url: string): {
   accessToken: string | null;
   refreshToken: string | null;
   type: string | null;

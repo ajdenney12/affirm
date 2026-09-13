@@ -100,7 +100,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'nextself://',
+        redirectTo: 'nextself://reset-password',
       });
       if (error) throw error;
       Alert.alert('Success', 'Password reset email sent! Check your inbox.');
