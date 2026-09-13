@@ -53,7 +53,7 @@ export default function SettingsScreen() {
                 throw error;
               }
 
-              await supabase.auth.signOut();
+              await supabase.auth.signOut({ scope: 'local' });
               router.replace('/(auth)/login');
             } catch {
               setIsDeleting(false);
