@@ -65,7 +65,7 @@ export default function LoginScreen() {
     setShowAgeVerification(false);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -73,7 +73,17 @@ export default function LoginScreen() {
         },
       });
       if (error) throw error;
-      Alert.alert('Success', 'Account created successfully!');
+
+      if (!data.session) {
+        setPassword('');
+        setIsLogin(true);
+        Alert.alert(
+          'Check Your Email',
+          'We sent you a confirmation email. Please confirm your email address, then return to NextSelf and log in.'
+        );
+      } else {
+        Alert.alert('Success', 'Account created successfully!');
+      }
     } catch (error: any) {
       Alert.alert('Error', error.message || 'An error occurred');
     } finally {
