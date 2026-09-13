@@ -69,7 +69,7 @@ export default function LoginScreen() {
         email,
         password,
         options: {
-          emailRedirectTo: 'nextself://',
+          emailRedirectTo: 'com.ajdenney12.nextself://',
         },
       });
       if (error) throw error;
@@ -100,7 +100,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'nextself://reset-password',
+        redirectTo: 'com.ajdenney12.nextself://reset-password',
       });
       if (error) throw error;
       Alert.alert('Success', 'Password reset email sent! Check your inbox.');

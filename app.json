@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/nextself-icon.png",
-    "scheme": "nextself",
+    "scheme": "com.ajdenney12.nextself",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
 
