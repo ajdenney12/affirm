@@ -27,49 +27,109 @@ export default function ResetPasswordScreen() {
   const [sessionReady, setSessionReady] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
+  const [diagInfo, setDiagInfo] = useState<{
+    scheme: string;
+    hostname: string;
+    pathname: string;
+    hasCode: boolean;
+    hasAccessToken: boolean;
+    hasRefreshToken: boolean;
+    typeValue: string | null;
+    hasError: boolean;
+    errorCode: string | null;
+    containsEncoded23: boolean;
+    containsDoubleEncoded23: boolean;
+    parseError: boolean;
+    noUrl: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let handled = false;
 
-    const logSanitizedUrlDebug = (rawUrl: string) => {
+    const buildDiagInfo = (rawUrl: string | null) => {
+      if (!rawUrl) {
+        return {
+          scheme: 'N/A',
+          hostname: 'N/A',
+          pathname: 'N/A',
+          hasCode: false,
+          hasAccessToken: false,
+          hasRefreshToken: false,
+          typeValue: null,
+          hasError: false,
+          errorCode: null,
+          containsEncoded23: false,
+          containsDoubleEncoded23: false,
+          parseError: false,
+          noUrl: true,
+        };
+      }
       let parsed: URL;
       try {
         parsed = new URL(rawUrl);
       } catch {
-        console.log(
-          `[PASSWORD_RESET_DEEPLINK_DEBUG] URL could not be parsed by new URL(). ` +
-            `encoded%23=${rawUrl.includes('%23')} ` +
-            `encoded%2523=${rawUrl.includes('%2523')}`
-        );
-        return;
+        return {
+          scheme: 'PARSE_ERROR',
+          hostname: 'PARSE_ERROR',
+          pathname: 'PARSE_ERROR',
+          hasCode: false,
+          hasAccessToken: false,
+          hasRefreshToken: false,
+          typeValue: null,
+          hasError: false,
+          errorCode: null,
+          containsEncoded23: rawUrl.includes('%23'),
+          containsDoubleEncoded23: rawUrl.includes('%2523'),
+          parseError: true,
+          noUrl: false,
+        };
       }
-
       const queryParams = parsed.searchParams;
       const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-
       const hasCode = !!queryParams.get('code') || !!hashParams.get('code');
-      const hasAccessToken = !!queryParams.get('access_token') || !!hashParams.get('access_token');
-      const hasRefreshToken = !!queryParams.get('refresh_token') || !!hashParams.get('refresh_token');
+      const hasAccessToken =
+        !!queryParams.get('access_token') || !!hashParams.get('access_token');
+      const hasRefreshToken =
+        !!queryParams.get('refresh_token') || !!hashParams.get('refresh_token');
       const typeValue = queryParams.get('type') || hashParams.get('type');
-      const hasError = !!queryParams.get('error') || !!hashParams.get('error');
+      const hasError =
+        !!queryParams.get('error') || !!hashParams.get('error');
       const errorCodeValue =
         queryParams.get('error_code') || hashParams.get('error_code');
-      const hasEncoded23 = rawUrl.includes('%23');
-      const hasEncoded2523 = rawUrl.includes('%2523');
+      return {
+        scheme: parsed.protocol,
+        hostname: parsed.hostname,
+        pathname: parsed.pathname,
+        hasCode,
+        hasAccessToken,
+        hasRefreshToken,
+        typeValue,
+        hasError,
+        errorCode: errorCodeValue,
+        containsEncoded23: rawUrl.includes('%23'),
+        containsDoubleEncoded23: rawUrl.includes('%2523'),
+        parseError: false,
+        noUrl: false,
+      };
+    };
 
+    const logSanitizedUrlDebug = (rawUrl: string) => {
+      const info = buildDiagInfo(rawUrl);
+      setDiagInfo(info);
       console.log(
         `[PASSWORD_RESET_DEEPLINK_DEBUG] ` +
-          `scheme=${parsed.protocol} ` +
-          `pathname=${parsed.pathname} ` +
-          `host=${parsed.host} ` +
-          `hasCode=${hasCode} ` +
-          `hasAccessToken=${hasAccessToken} ` +
-          `hasRefreshToken=${hasRefreshToken} ` +
-          `type=${typeValue} ` +
-          `hasError=${hasError} ` +
-          `error_code=${errorCodeValue} ` +
-          `encoded%23=${hasEncoded23} ` +
-          `encoded%2523=${hasEncoded2523}`
+          `scheme=${info.scheme} ` +
+          `hostname=${info.hostname} ` +
+          `pathname=${info.pathname} ` +
+          `hasCode=${info.hasCode} ` +
+          `hasAccessToken=${info.hasAccessToken} ` +
+          `hasRefreshToken=${info.hasRefreshToken} ` +
+          `type=${info.typeValue} ` +
+          `hasError=${info.hasError} ` +
+          `errorCode=${info.errorCode} ` +
+          `containsEncoded23=${info.containsEncoded23} ` +
+          `containsDoubleEncoded23=${info.containsDoubleEncoded23} ` +
+          `parseError=${info.parseError}`
       );
     };
 
@@ -83,6 +143,7 @@ export default function ResetPasswordScreen() {
       if (!accessToken || !refreshToken || type !== 'recovery') {
         setInitializing(false);
         setInitError('This password reset link is invalid or incomplete. Please request a new reset link from the login screen.');
+        setDiagInfo(buildDiagInfo(url));
         return;
       }
 
@@ -109,6 +170,7 @@ export default function ResetPasswordScreen() {
       } else {
         setInitializing(false);
         setInitError('This password reset link is invalid. Please request a new reset link from the login screen.');
+        setDiagInfo(buildDiagInfo(null));
       }
     });
 
@@ -188,7 +250,7 @@ export default function ResetPasswordScreen() {
 
   if (initError) {
     return (
-      <View style={styles.loadingContainer}>
+      <ScrollView style={styles.loadingContainer} contentContainerStyle={styles.loadingContent}>
         <Text style={styles.initErrorText}>{initError}</Text>
         <TouchableOpacity
           onPress={() => router.replace('/(auth)/login')}
@@ -198,7 +260,25 @@ export default function ResetPasswordScreen() {
             <Text style={styles.buttonText}>Back to Login</Text>
           </LinearGradient>
         </TouchableOpacity>
-      </View>
+        {diagInfo && (
+          <View style={styles.diagPanel}>
+            <Text style={styles.diagTitle}>[PASSWORD_RESET_DEEPLINK_DEBUG]</Text>
+            <Text style={styles.diagText}>scheme: {diagInfo.scheme}</Text>
+            <Text style={styles.diagText}>hostname: {diagInfo.hostname}</Text>
+            <Text style={styles.diagText}>pathname: {diagInfo.pathname}</Text>
+            <Text style={styles.diagText}>hasCode: {String(diagInfo.hasCode)}</Text>
+            <Text style={styles.diagText}>hasAccessToken: {String(diagInfo.hasAccessToken)}</Text>
+            <Text style={styles.diagText}>hasRefreshToken: {String(diagInfo.hasRefreshToken)}</Text>
+            <Text style={styles.diagText}>type: {diagInfo.typeValue ?? '(null)'}</Text>
+            <Text style={styles.diagText}>hasError: {String(diagInfo.hasError)}</Text>
+            <Text style={styles.diagText}>errorCode: {diagInfo.errorCode ?? '(null)'}</Text>
+            <Text style={styles.diagText}>containsEncoded23: {String(diagInfo.containsEncoded23)}</Text>
+            <Text style={styles.diagText}>containsDoubleEncoded23: {String(diagInfo.containsDoubleEncoded23)}</Text>
+            <Text style={styles.diagText}>parseError: {String(diagInfo.parseError)}</Text>
+            <Text style={styles.diagText}>noUrl: {String(diagInfo.noUrl)}</Text>
+          </View>
+        )}
+      </ScrollView>
     );
   }
 
@@ -375,10 +455,33 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    backgroundColor: '#F6F2FF',
+  },
+  loadingContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F6F2FF',
     padding: 32,
+    flexGrow: 1,
+  },
+  diagPanel: {
+    marginTop: 24,
+    backgroundColor: 'rgba(124, 77, 238, 0.06)',
+    borderRadius: 12,
+    padding: 16,
+    alignSelf: 'stretch',
+  },
+  diagTitle: {
+    fontSize: 10,
+    fontFamily: 'monospace',
+    color: '#7C4DEE',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  diagText: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    color: '#555',
+    lineHeight: 16,
   },
   initErrorText: {
     fontSize: 16,
