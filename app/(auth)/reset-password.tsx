@@ -15,12 +15,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { supabase } from '../../lib/supabase';
 import { parseTokenFromUrl } from '../../lib/auth-deep-link';
-import { useRouter } from 'expo-router';
+import { useRouter, useGlobalSearchParams } from 'expo-router';
 
 const MIN_PASSWORD_LENGTH = 6;
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const globalSearchParams = useGlobalSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,10 +42,28 @@ export default function ResetPasswordScreen() {
     containsDoubleEncoded23: boolean;
     parseError: boolean;
     noUrl: boolean;
+    routerHasAccessToken: boolean;
+    routerHasRefreshToken: boolean;
+    routerType: string | null;
+    routerHasCode: boolean;
+    routerHasError: boolean;
+    routerErrorCode: string | null;
+    routerParamKeys: string;
   } | null>(null);
 
   useEffect(() => {
     let handled = false;
+
+    const routerParamNames = Object.keys(globalSearchParams);
+    const routerInfo = {
+      routerHasAccessToken: routerParamNames.includes('access_token'),
+      routerHasRefreshToken: routerParamNames.includes('refresh_token'),
+      routerType: (globalSearchParams.type as string) ?? null,
+      routerHasCode: routerParamNames.includes('code'),
+      routerHasError: routerParamNames.includes('error'),
+      routerErrorCode: (globalSearchParams.error_code as string) ?? null,
+      routerParamKeys: routerParamNames.join(', ') || '(none)',
+    };
 
     const buildDiagInfo = (rawUrl: string | null) => {
       if (!rawUrl) {
@@ -62,6 +81,7 @@ export default function ResetPasswordScreen() {
           containsDoubleEncoded23: false,
           parseError: false,
           noUrl: true,
+          ...routerInfo,
         };
       }
       let parsed: URL;
@@ -82,6 +102,7 @@ export default function ResetPasswordScreen() {
           containsDoubleEncoded23: rawUrl.includes('%2523'),
           parseError: true,
           noUrl: false,
+          ...routerInfo,
         };
       }
       const queryParams = parsed.searchParams;
@@ -110,6 +131,7 @@ export default function ResetPasswordScreen() {
         containsDoubleEncoded23: rawUrl.includes('%2523'),
         parseError: false,
         noUrl: false,
+        ...routerInfo,
       };
     };
 
@@ -276,6 +298,13 @@ export default function ResetPasswordScreen() {
             <Text style={styles.diagText}>containsDoubleEncoded23: {String(diagInfo.containsDoubleEncoded23)}</Text>
             <Text style={styles.diagText}>parseError: {String(diagInfo.parseError)}</Text>
             <Text style={styles.diagText}>noUrl: {String(diagInfo.noUrl)}</Text>
+            <Text style={styles.diagText}>routerHasAccessToken: {String(diagInfo.routerHasAccessToken)}</Text>
+            <Text style={styles.diagText}>routerHasRefreshToken: {String(diagInfo.routerHasRefreshToken)}</Text>
+            <Text style={styles.diagText}>routerType: {diagInfo.routerType ?? '(null)'}</Text>
+            <Text style={styles.diagText}>routerHasCode: {String(diagInfo.routerHasCode)}</Text>
+            <Text style={styles.diagText}>routerHasError: {String(diagInfo.routerHasError)}</Text>
+            <Text style={styles.diagText}>routerErrorCode: {diagInfo.routerErrorCode ?? '(null)'}</Text>
+            <Text style={styles.diagText}>routerParamKeys: {diagInfo.routerParamKeys}</Text>
           </View>
         )}
       </ScrollView>
