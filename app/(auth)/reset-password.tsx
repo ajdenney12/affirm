@@ -15,210 +15,30 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Linking from 'expo-linking';
 import { supabase } from '../../lib/supabase';
 import { parseTokenFromUrl } from '../../lib/auth-deep-link';
-import { useRouter, useGlobalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 const MIN_PASSWORD_LENGTH = 6;
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
-  const globalSearchParams = useGlobalSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
-  const [diagInfo, setDiagInfo] = useState<{
-    scheme: string;
-    hostname: string;
-    pathname: string;
-    hasCode: boolean;
-    hasAccessToken: boolean;
-    hasRefreshToken: boolean;
-    typeValue: string | null;
-    hasError: boolean;
-    errorCode: string | null;
-    containsEncoded23: boolean;
-    containsDoubleEncoded23: boolean;
-    parseError: boolean;
-    noUrl: boolean;
-    routerHasAccessToken: boolean;
-    routerHasRefreshToken: boolean;
-    routerType: string | null;
-    routerHasCode: boolean;
-    routerHasError: boolean;
-    routerErrorCode: string | null;
-    routerParamKeys: string;
-    linkingUrlPresent: boolean;
-    linkingUrlScheme: string;
-    linkingUrlHostname: string;
-    linkingUrlPathname: string;
-    linkingUrlHasFragment: boolean;
-    linkingUrlFragmentHasAccessToken: boolean;
-    linkingUrlFragmentHasRefreshToken: boolean;
-    linkingUrlFragmentType: string | null;
-  } | null>(null);
 
   useEffect(() => {
     let handled = false;
 
-    const routerParamNames = Object.keys(globalSearchParams);
-    const routerInfo = {
-      routerHasAccessToken: routerParamNames.includes('access_token'),
-      routerHasRefreshToken: routerParamNames.includes('refresh_token'),
-      routerType: (globalSearchParams.type as string) ?? null,
-      routerHasCode: routerParamNames.includes('code'),
-      routerHasError: routerParamNames.includes('error'),
-      routerErrorCode: (globalSearchParams.error_code as string) ?? null,
-      routerParamKeys: routerParamNames.join(', ') || '(none)',
-    };
-
-    const linkingUrl = Linking.getLinkingURL();
-    const linkingInfo = (() => {
-      if (!linkingUrl) {
-        return {
-          linkingUrlPresent: false,
-          linkingUrlScheme: 'N/A',
-          linkingUrlHostname: 'N/A',
-          linkingUrlPathname: 'N/A',
-          linkingUrlHasFragment: false,
-          linkingUrlFragmentHasAccessToken: false,
-          linkingUrlFragmentHasRefreshToken: false,
-          linkingUrlFragmentType: null,
-        };
-      }
-      let parsed: URL;
-      try {
-        parsed = new URL(linkingUrl);
-      } catch {
-        return {
-          linkingUrlPresent: true,
-          linkingUrlScheme: 'PARSE_ERROR',
-          linkingUrlHostname: 'PARSE_ERROR',
-          linkingUrlPathname: 'PARSE_ERROR',
-          linkingUrlHasFragment: linkingUrl.includes('#'),
-          linkingUrlFragmentHasAccessToken: false,
-          linkingUrlFragmentHasRefreshToken: false,
-          linkingUrlFragmentType: null,
-        };
-      }
-      const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-      return {
-        linkingUrlPresent: true,
-        linkingUrlScheme: parsed.protocol || 'N/A',
-        linkingUrlHostname: parsed.hostname || 'N/A',
-        linkingUrlPathname: parsed.pathname || 'N/A',
-        linkingUrlHasFragment: parsed.hash.length > 0,
-        linkingUrlFragmentHasAccessToken: !!hashParams.get('access_token'),
-        linkingUrlFragmentHasRefreshToken: !!hashParams.get('refresh_token'),
-        linkingUrlFragmentType: hashParams.get('type') ?? null,
-      };
-    })();
-
-    const buildDiagInfo = (rawUrl: string | null) => {
-      if (!rawUrl) {
-        return {
-          scheme: 'N/A',
-          hostname: 'N/A',
-          pathname: 'N/A',
-          hasCode: false,
-          hasAccessToken: false,
-          hasRefreshToken: false,
-          typeValue: null,
-          hasError: false,
-          errorCode: null,
-          containsEncoded23: false,
-          containsDoubleEncoded23: false,
-          parseError: false,
-          noUrl: true,
-          ...routerInfo,
-          ...linkingInfo,
-        };
-      }
-      let parsed: URL;
-      try {
-        parsed = new URL(rawUrl);
-      } catch {
-        return {
-          scheme: 'PARSE_ERROR',
-          hostname: 'PARSE_ERROR',
-          pathname: 'PARSE_ERROR',
-          hasCode: false,
-          hasAccessToken: false,
-          hasRefreshToken: false,
-          typeValue: null,
-          hasError: false,
-          errorCode: null,
-          containsEncoded23: rawUrl.includes('%23'),
-          containsDoubleEncoded23: rawUrl.includes('%2523'),
-          parseError: true,
-          noUrl: false,
-          ...routerInfo,
-          ...linkingInfo,
-        };
-      }
-      const queryParams = parsed.searchParams;
-      const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
-      const hasCode = !!queryParams.get('code') || !!hashParams.get('code');
-      const hasAccessToken =
-        !!queryParams.get('access_token') || !!hashParams.get('access_token');
-      const hasRefreshToken =
-        !!queryParams.get('refresh_token') || !!hashParams.get('refresh_token');
-      const typeValue = queryParams.get('type') || hashParams.get('type');
-      const hasError =
-        !!queryParams.get('error') || !!hashParams.get('error');
-      const errorCodeValue =
-        queryParams.get('error_code') || hashParams.get('error_code');
-      return {
-        scheme: parsed.protocol,
-        hostname: parsed.hostname,
-        pathname: parsed.pathname,
-        hasCode,
-        hasAccessToken,
-        hasRefreshToken,
-        typeValue,
-        hasError,
-        errorCode: errorCodeValue,
-        containsEncoded23: rawUrl.includes('%23'),
-        containsDoubleEncoded23: rawUrl.includes('%2523'),
-        parseError: false,
-        noUrl: false,
-        ...routerInfo,
-        ...linkingInfo,
-      };
-    };
-
-    const logSanitizedUrlDebug = (rawUrl: string) => {
-      const info = buildDiagInfo(rawUrl);
-      setDiagInfo(info);
-      console.log(
-        `[PASSWORD_RESET_DEEPLINK_DEBUG] ` +
-          `scheme=${info.scheme} ` +
-          `hostname=${info.hostname} ` +
-          `pathname=${info.pathname} ` +
-          `hasCode=${info.hasCode} ` +
-          `hasAccessToken=${info.hasAccessToken} ` +
-          `hasRefreshToken=${info.hasRefreshToken} ` +
-          `type=${info.typeValue} ` +
-          `hasError=${info.hasError} ` +
-          `errorCode=${info.errorCode} ` +
-          `containsEncoded23=${info.containsEncoded23} ` +
-          `containsDoubleEncoded23=${info.containsDoubleEncoded23} ` +
-          `parseError=${info.parseError}`
-      );
-    };
-
     const establishRecoverySession = async (url: string) => {
       if (handled) return;
-
-      logSanitizedUrlDebug(url);
 
       const { accessToken, refreshToken, type } = parseTokenFromUrl(url);
 
       if (!accessToken || !refreshToken || type !== 'recovery') {
         setInitializing(false);
         setInitError('This password reset link is invalid or incomplete. Please request a new reset link from the login screen.');
-        setDiagInfo(buildDiagInfo(url));
         return;
       }
 
@@ -239,15 +59,19 @@ export default function ResetPasswordScreen() {
       setInitializing(false);
     };
 
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        establishRecoverySession(url);
-      } else {
-        setInitializing(false);
-        setInitError('This password reset link is invalid. Please request a new reset link from the login screen.');
-        setDiagInfo(buildDiagInfo(null));
-      }
-    });
+    const initialUrl = Linking.getLinkingURL();
+    if (initialUrl) {
+      establishRecoverySession(initialUrl);
+    } else {
+      Linking.getInitialURL().then((url) => {
+        if (url) {
+          establishRecoverySession(url);
+        } else {
+          setInitializing(false);
+          setInitError('This password reset link is invalid. Please request a new reset link from the login screen.');
+        }
+      });
+    }
 
     const subscription = Linking.addEventListener('url', ({ url }) => {
       establishRecoverySession(url);
@@ -325,7 +149,7 @@ export default function ResetPasswordScreen() {
 
   if (initError) {
     return (
-      <ScrollView style={styles.loadingContainer} contentContainerStyle={styles.loadingContent}>
+      <View style={styles.loadingContainer}>
         <Text style={styles.initErrorText}>{initError}</Text>
         <TouchableOpacity
           onPress={() => router.replace('/(auth)/login')}
@@ -335,40 +159,7 @@ export default function ResetPasswordScreen() {
             <Text style={styles.buttonText}>Back to Login</Text>
           </LinearGradient>
         </TouchableOpacity>
-        {diagInfo && (
-          <View style={styles.diagPanel}>
-            <Text style={styles.diagTitle}>[PASSWORD_RESET_DEEPLINK_DEBUG]</Text>
-            <Text style={styles.diagText}>scheme: {diagInfo.scheme}</Text>
-            <Text style={styles.diagText}>hostname: {diagInfo.hostname}</Text>
-            <Text style={styles.diagText}>pathname: {diagInfo.pathname}</Text>
-            <Text style={styles.diagText}>hasCode: {String(diagInfo.hasCode)}</Text>
-            <Text style={styles.diagText}>hasAccessToken: {String(diagInfo.hasAccessToken)}</Text>
-            <Text style={styles.diagText}>hasRefreshToken: {String(diagInfo.hasRefreshToken)}</Text>
-            <Text style={styles.diagText}>type: {diagInfo.typeValue ?? '(null)'}</Text>
-            <Text style={styles.diagText}>hasError: {String(diagInfo.hasError)}</Text>
-            <Text style={styles.diagText}>errorCode: {diagInfo.errorCode ?? '(null)'}</Text>
-            <Text style={styles.diagText}>containsEncoded23: {String(diagInfo.containsEncoded23)}</Text>
-            <Text style={styles.diagText}>containsDoubleEncoded23: {String(diagInfo.containsDoubleEncoded23)}</Text>
-            <Text style={styles.diagText}>parseError: {String(diagInfo.parseError)}</Text>
-            <Text style={styles.diagText}>noUrl: {String(diagInfo.noUrl)}</Text>
-            <Text style={styles.diagText}>routerHasAccessToken: {String(diagInfo.routerHasAccessToken)}</Text>
-            <Text style={styles.diagText}>routerHasRefreshToken: {String(diagInfo.routerHasRefreshToken)}</Text>
-            <Text style={styles.diagText}>routerType: {diagInfo.routerType ?? '(null)'}</Text>
-            <Text style={styles.diagText}>routerHasCode: {String(diagInfo.routerHasCode)}</Text>
-            <Text style={styles.diagText}>routerHasError: {String(diagInfo.routerHasError)}</Text>
-            <Text style={styles.diagText}>routerErrorCode: {diagInfo.routerErrorCode ?? '(null)'}</Text>
-            <Text style={styles.diagText}>routerParamKeys: {diagInfo.routerParamKeys}</Text>
-            <Text style={styles.diagText}>linkingUrlPresent: {String(diagInfo.linkingUrlPresent)}</Text>
-            <Text style={styles.diagText}>linkingUrlScheme: {diagInfo.linkingUrlScheme}</Text>
-            <Text style={styles.diagText}>linkingUrlHostname: {diagInfo.linkingUrlHostname}</Text>
-            <Text style={styles.diagText}>linkingUrlPathname: {diagInfo.linkingUrlPathname}</Text>
-            <Text style={styles.diagText}>linkingUrlHasFragment: {String(diagInfo.linkingUrlHasFragment)}</Text>
-            <Text style={styles.diagText}>linkingUrlFragmentHasAccessToken: {String(diagInfo.linkingUrlFragmentHasAccessToken)}</Text>
-            <Text style={styles.diagText}>linkingUrlFragmentHasRefreshToken: {String(diagInfo.linkingUrlFragmentHasRefreshToken)}</Text>
-            <Text style={styles.diagText}>linkingUrlFragmentType: {diagInfo.linkingUrlFragmentType ?? '(null)'}</Text>
-          </View>
-        )}
-      </ScrollView>
+      </View>
     );
   }
 
@@ -546,32 +337,9 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     backgroundColor: '#F6F2FF',
-  },
-  loadingContent: {
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    flexGrow: 1,
-  },
-  diagPanel: {
-    marginTop: 24,
-    backgroundColor: 'rgba(124, 77, 238, 0.06)',
-    borderRadius: 12,
-    padding: 16,
-    alignSelf: 'stretch',
-  },
-  diagTitle: {
-    fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#7C4DEE',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  diagText: {
-    fontSize: 11,
-    fontFamily: 'monospace',
-    color: '#555',
-    lineHeight: 16,
   },
   initErrorText: {
     fontSize: 16,
