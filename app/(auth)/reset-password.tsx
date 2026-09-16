@@ -49,6 +49,14 @@ export default function ResetPasswordScreen() {
     routerHasError: boolean;
     routerErrorCode: string | null;
     routerParamKeys: string;
+    linkingUrlPresent: boolean;
+    linkingUrlScheme: string;
+    linkingUrlHostname: string;
+    linkingUrlPathname: string;
+    linkingUrlHasFragment: boolean;
+    linkingUrlFragmentHasAccessToken: boolean;
+    linkingUrlFragmentHasRefreshToken: boolean;
+    linkingUrlFragmentType: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -64,6 +72,48 @@ export default function ResetPasswordScreen() {
       routerErrorCode: (globalSearchParams.error_code as string) ?? null,
       routerParamKeys: routerParamNames.join(', ') || '(none)',
     };
+
+    const linkingUrl = Linking.getLinkingURL();
+    const linkingInfo = (() => {
+      if (!linkingUrl) {
+        return {
+          linkingUrlPresent: false,
+          linkingUrlScheme: 'N/A',
+          linkingUrlHostname: 'N/A',
+          linkingUrlPathname: 'N/A',
+          linkingUrlHasFragment: false,
+          linkingUrlFragmentHasAccessToken: false,
+          linkingUrlFragmentHasRefreshToken: false,
+          linkingUrlFragmentType: null,
+        };
+      }
+      let parsed: URL;
+      try {
+        parsed = new URL(linkingUrl);
+      } catch {
+        return {
+          linkingUrlPresent: true,
+          linkingUrlScheme: 'PARSE_ERROR',
+          linkingUrlHostname: 'PARSE_ERROR',
+          linkingUrlPathname: 'PARSE_ERROR',
+          linkingUrlHasFragment: linkingUrl.includes('#'),
+          linkingUrlFragmentHasAccessToken: false,
+          linkingUrlFragmentHasRefreshToken: false,
+          linkingUrlFragmentType: null,
+        };
+      }
+      const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ''));
+      return {
+        linkingUrlPresent: true,
+        linkingUrlScheme: parsed.protocol || 'N/A',
+        linkingUrlHostname: parsed.hostname || 'N/A',
+        linkingUrlPathname: parsed.pathname || 'N/A',
+        linkingUrlHasFragment: parsed.hash.length > 0,
+        linkingUrlFragmentHasAccessToken: !!hashParams.get('access_token'),
+        linkingUrlFragmentHasRefreshToken: !!hashParams.get('refresh_token'),
+        linkingUrlFragmentType: hashParams.get('type') ?? null,
+      };
+    })();
 
     const buildDiagInfo = (rawUrl: string | null) => {
       if (!rawUrl) {
@@ -82,6 +132,7 @@ export default function ResetPasswordScreen() {
           parseError: false,
           noUrl: true,
           ...routerInfo,
+          ...linkingInfo,
         };
       }
       let parsed: URL;
@@ -103,6 +154,7 @@ export default function ResetPasswordScreen() {
           parseError: true,
           noUrl: false,
           ...routerInfo,
+          ...linkingInfo,
         };
       }
       const queryParams = parsed.searchParams;
@@ -132,6 +184,7 @@ export default function ResetPasswordScreen() {
         parseError: false,
         noUrl: false,
         ...routerInfo,
+        ...linkingInfo,
       };
     };
 
@@ -305,6 +358,14 @@ export default function ResetPasswordScreen() {
             <Text style={styles.diagText}>routerHasError: {String(diagInfo.routerHasError)}</Text>
             <Text style={styles.diagText}>routerErrorCode: {diagInfo.routerErrorCode ?? '(null)'}</Text>
             <Text style={styles.diagText}>routerParamKeys: {diagInfo.routerParamKeys}</Text>
+            <Text style={styles.diagText}>linkingUrlPresent: {String(diagInfo.linkingUrlPresent)}</Text>
+            <Text style={styles.diagText}>linkingUrlScheme: {diagInfo.linkingUrlScheme}</Text>
+            <Text style={styles.diagText}>linkingUrlHostname: {diagInfo.linkingUrlHostname}</Text>
+            <Text style={styles.diagText}>linkingUrlPathname: {diagInfo.linkingUrlPathname}</Text>
+            <Text style={styles.diagText}>linkingUrlHasFragment: {String(diagInfo.linkingUrlHasFragment)}</Text>
+            <Text style={styles.diagText}>linkingUrlFragmentHasAccessToken: {String(diagInfo.linkingUrlFragmentHasAccessToken)}</Text>
+            <Text style={styles.diagText}>linkingUrlFragmentHasRefreshToken: {String(diagInfo.linkingUrlFragmentHasRefreshToken)}</Text>
+            <Text style={styles.diagText}>linkingUrlFragmentType: {diagInfo.linkingUrlFragmentType ?? '(null)'}</Text>
           </View>
         )}
       </ScrollView>
