@@ -50,6 +50,7 @@ export default function AffirmationsScreen() {
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [goalLoading, setGoalLoading] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
@@ -160,7 +161,7 @@ export default function AffirmationsScreen() {
     }
 
     if (!isPremium && affirmations.length >= FREE_AFFIRMATION_LIMIT) {
-      setShowPaywall(true);
+      setShowLimitModal(true);
       return;
     }
 
@@ -538,7 +539,99 @@ export default function AffirmationsScreen() {
           )}
         </ScrollView>
 
-        {/* Paywall Modal — shown when free user hits affirmation limit */}
+        <Modal
+          visible={showLimitModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowLimitModal(false)}
+        >
+          <View style={styles.limitOverlay}>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.limitBackdrop}
+              onPress={() => setShowLimitModal(false)}
+            />
+            <View style={styles.limitCard}>
+              <TouchableOpacity
+                accessibilityLabel="Close upgrade message"
+                onPress={() => setShowLimitModal(false)}
+                style={styles.limitCloseButton}
+              >
+                <Ionicons name="close" size={24} color={INK} />
+              </TouchableOpacity>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.limitScrollContent}
+              >
+                <View style={styles.limitBrandIcon}>
+                  <Ionicons name="sparkles" size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.limitBrandTitle}>NextSelf</Text>
+                <Text style={styles.limitBrandSubtitle}>More Affirmations. A Bigger You.</Text>
+
+                <View style={styles.limitHeartIcon}>
+                  <Ionicons name="heart" size={34} color={PURPLE_LIGHT} />
+                </View>
+                <Text style={styles.limitTitle}>You've reached your 5 free affirmations!</Text>
+                <Text style={styles.limitDescription}>
+                  You can keep your 5 affirmations, and you can delete or edit any of them.
+                </Text>
+
+                <View style={styles.limitOfferCard}>
+                  <Text style={styles.limitOfferTitle}>Upgrade to NextSelf Premium</Text>
+                  <Text style={styles.limitOfferSubtitle}>Unlock your full potential with:</Text>
+                  <View style={styles.limitFeatureRow}>
+                    <View style={[styles.limitFeatureIcon, styles.limitFeatureIconPurple]}>
+                      <Ionicons name="sparkles" size={20} color={PURPLE} />
+                    </View>
+                    <Text style={styles.limitFeatureText}>Unlimited affirmations</Text>
+                  </View>
+                  <View style={styles.limitFeatureRow}>
+                    <View style={[styles.limitFeatureIcon, styles.limitFeatureIconPink]}>
+                      <Ionicons name="chatbubble-ellipses-outline" size={20} color="#C45BB7" />
+                    </View>
+                    <View style={styles.limitFeatureCopy}>
+                      <Text style={styles.limitFeatureText}>AI Coach access</Text>
+                      <Text style={styles.limitFeatureSubtext}>Personalized support whenever you need it</Text>
+                    </View>
+                  </View>
+                  <View style={styles.limitFeatureRow}>
+                    <View style={[styles.limitFeatureIcon, styles.limitFeatureIconGreen]}>
+                      <Ionicons name="flag-outline" size={20} color="#2A8A78" />
+                    </View>
+                    <View style={styles.limitFeatureCopy}>
+                      <Text style={styles.limitFeatureText}>Goal setting & progress tracking</Text>
+                      <Text style={styles.limitFeatureSubtext}>Turn your mindset into action</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.limitUpgradeButton}
+                    onPress={() => {
+                      setShowLimitModal(false);
+                      setShowPaywall(true);
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <LinearGradient colors={[PURPLE, PURPLE_LIGHT]} style={styles.limitUpgradeGradient}>
+                      <Text style={styles.limitUpgradeText}>Upgrade to Premium</Text>
+                      <Ionicons name="arrow-forward" size={22} color="#FFFFFF" />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                  <Text style={styles.limitPrice}>$9.99 per year</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.limitLaterButton}
+                  onPress={() => setShowLimitModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.limitLaterText}>Maybe later</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
         <Modal
           visible={showPaywall}
           transparent
@@ -901,6 +994,137 @@ const styles = StyleSheet.create({
   coachSub: { fontSize: 13, color: INK_SOFT, marginTop: 2 },
 
   paywallOverlay: { flex: 1, backgroundColor: 'rgba(50,30,90,0.5)' },
+  limitOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  limitBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(52, 33, 94, 0.46)',
+  },
+  limitCard: {
+    width: '100%',
+    maxWidth: 520,
+    maxHeight: '92%',
+    backgroundColor: '#FCFAFF',
+    borderRadius: 26,
+    overflow: 'hidden',
+    shadowColor: '#33215E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  limitScrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: 20,
+  },
+  limitCloseButton: {
+    position: 'absolute',
+    zIndex: 2,
+    top: 14,
+    right: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0E9FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  limitBrandIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#F1B749',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  limitBrandTitle: { fontSize: 27, fontWeight: '700', color: INK },
+  limitBrandSubtitle: { fontSize: 13, color: '#8270B0', marginTop: 2 },
+  limitHeartIcon: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#F0E5FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  limitTitle: {
+    fontSize: 25,
+    lineHeight: 30,
+    fontWeight: '700',
+    color: INK,
+    textAlign: 'center',
+  },
+  limitDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: INK,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 18,
+  },
+  limitOfferCard: {
+    width: '100%',
+    backgroundColor: '#FBEFFF',
+    borderRadius: 22,
+    padding: 18,
+    alignItems: 'center',
+  },
+  limitOfferTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
+    color: PURPLE,
+    textAlign: 'center',
+  },
+  limitOfferSubtitle: { fontSize: 15, color: INK, marginTop: 8, marginBottom: 10 },
+  limitFeatureRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  limitFeatureIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  limitFeatureIconPurple: { backgroundColor: '#E9DFFF' },
+  limitFeatureIconPink: { backgroundColor: '#F8D9F1' },
+  limitFeatureIconGreen: { backgroundColor: '#C9F0E4' },
+  limitFeatureCopy: { flex: 1 },
+  limitFeatureText: { flex: 1, fontSize: 15, lineHeight: 20, fontWeight: '700', color: INK },
+  limitFeatureSubtext: { fontSize: 12, lineHeight: 17, color: '#8270B0', marginTop: 1 },
+  limitUpgradeButton: { width: '100%', borderRadius: 16, overflow: 'hidden', marginTop: 18 },
+  limitUpgradeGradient: {
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  limitUpgradeText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  limitPrice: { fontSize: 14, color: '#8270B0', marginTop: 10 },
+  limitLaterButton: {
+    width: '100%',
+    backgroundColor: '#F0E9FF',
+    borderRadius: 16,
+    alignItems: 'center',
+    paddingVertical: 15,
+    marginTop: 14,
+  },
+  limitLaterText: { fontSize: 15, fontWeight: '700', color: PURPLE },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(50,30,90,0.4)', justifyContent: 'flex-end' },
   modalContent: {
     backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28,
