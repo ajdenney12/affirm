@@ -30,7 +30,7 @@ export default function ChatScreen() {
       id: '0',
       role: 'assistant',
       content:
-        "Hi, I'm your NextSelf wellness coach. \u{1F331}\n\nIf one thing in your life could feel different a month from now \u2014 what would it be?",
+        "Hi, I'm your NexSelf wellness coach. \u{1F331}\n\nIf one thing in your life could feel different a month from now \u2014 what would it be?",
     },
   ]);
 
@@ -202,7 +202,7 @@ export default function ChatScreen() {
               style={styles.input}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Ask your NextSelf coach..."
+              placeholder="Ask your NexSelf coach..."
               placeholderTextColor="#9CA3AF"
               multiline
               maxLength={500}

@@ -36,7 +36,7 @@ export default function SettingsScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your NextSelf account and all app data, including your affirmations and goals. This action cannot be undone.\n\nDeleting your NextSelf account does not cancel an Apple App Store subscription. If you have an active subscription, you must cancel it separately through Apple Settings > Apple ID > Subscriptions.',
+      'This will permanently delete your NexSelf account and all app data, including your affirmations and goals. This action cannot be undone.\n\nDeleting your NexSelf account does not cancel an Apple App Store subscription. If you have an active subscription, you must cancel it separately through Apple Settings > Apple ID > Subscriptions.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -175,7 +175,7 @@ export default function SettingsScreen() {
                 <View style={styles.disclaimerSection}>
                   <Text style={styles.disclaimerTitle}>General Disclaimer</Text>
                   <Text style={styles.disclaimerText}>
-                    NextSelf is designed for personal growth and motivational purposes only. The content, affirmations, and goal-tracking features provided are not a substitute for professional medical, psychological, or mental health advice, diagnosis, or treatment.
+                    NexSelf is designed for personal growth and motivational purposes only. The content, affirmations, and goal-tracking features provided are not a substitute for professional medical, psychological, or mental health advice, diagnosis, or treatment.
                   </Text>
                 </View>
 
@@ -196,7 +196,7 @@ export default function SettingsScreen() {
                 <View style={styles.disclaimerSection}>
                   <Text style={styles.disclaimerTitle}>General Liability</Text>
                   <Text style={styles.disclaimerText}>
-                    By using NextSelf you acknowledge that results may vary and that Anthropic and the app developer are not liable for any decisions made based on content within this app. Use of this app is at your own discretion and risk.
+                    By using NexSelf you acknowledge that results may vary and that Anthropic and the app developer are not liable for any decisions made based on content within this app. Use of this app is at your own discretion and risk.
                   </Text>
                 </View>
               </ScrollView>

@@ -79,7 +79,7 @@ export default function LoginScreen() {
         setIsLogin(true);
         Alert.alert(
           'Check Your Email',
-          'We sent you a confirmation email. Please confirm your email address, then return to NextSelf and log in.'
+          'We sent you a confirmation email. Please confirm your email address, then return to NexSelf and log in.'
         );
       } else {
         Alert.alert('Success', 'Account created successfully!');
@@ -139,7 +139,7 @@ export default function LoginScreen() {
                 <Text style={styles.iconText}>✨</Text>
               </LinearGradient>
             </View>
-            <Text style={styles.title}>NextSelf</Text>
+            <Text style={styles.title}>NexSelf</Text>
             <Text style={styles.subtitle}>Your personal space for growth and positivity</Text>
           </View>
 
@@ -292,7 +292,7 @@ export default function LoginScreen() {
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Age Verification Required</Text>
               <Text style={styles.modalText}>
-                In accordance with our Terms of Service, you must be at least 13 years old to create an account and use NextSelf.
+                In accordance with our Terms of Service, you must be at least 13 years old to create an account and use NexSelf.
               </Text>
 
               <TouchableOpacity
@@ -368,7 +368,7 @@ export default function LoginScreen() {
                 <View style={styles.disclaimerSection}>
                   <Text style={styles.disclaimerTitle}>General Disclaimer</Text>
                   <Text style={styles.disclaimerText}>
-                    NextSelf is designed for personal growth and motivational purposes only. The content, affirmations, and goal-tracking features provided are not a substitute for professional medical, psychological, or mental health advice, diagnosis, or treatment.
+                    NexSelf is designed for personal growth and motivational purposes only. The content, affirmations, and goal-tracking features provided are not a substitute for professional medical, psychological, or mental health advice, diagnosis, or treatment.
                   </Text>
                 </View>
 
@@ -389,7 +389,7 @@ export default function LoginScreen() {
                 <View style={styles.disclaimerSection}>
                   <Text style={styles.disclaimerTitle}>General Liability</Text>
                   <Text style={styles.disclaimerText}>
-                    By using NextSelf you acknowledge that results may vary and that Anthropic and the app developer are not liable for any decisions made based on content within this app. Use of this app is at your own discretion and risk.
+                    By using NexSelf you acknowledge that results may vary and that Anthropic and the app developer are not liable for any decisions made based on content within this app. Use of this app is at your own discretion and risk.
                   </Text>
                 </View>
               </ScrollView>

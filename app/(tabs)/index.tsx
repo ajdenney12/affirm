@@ -427,7 +427,7 @@ export default function AffirmationsScreen() {
             <View style={styles.notificationIcon}><Ionicons name="notifications-outline" size={20} color="#33215E" /><View style={styles.notificationDot} /></View>
           </View>
           <View style={styles.brandMark}><Ionicons name="sparkles" size={30} color="#9B6DFF" /></View>
-          <Text style={styles.title}>NextSelf</Text>
+          <Text style={styles.title}>NexSelf</Text>
           <Text style={styles.subtitle}>Your AI Partner in Growth</Text>
         </View>
 
@@ -566,7 +566,7 @@ export default function AffirmationsScreen() {
                 <View style={styles.limitBrandIcon}>
                   <Ionicons name="sparkles" size={28} color="#FFFFFF" />
                 </View>
-                <Text style={styles.limitBrandTitle}>NextSelf</Text>
+                <Text style={styles.limitBrandTitle}>NexSelf</Text>
                 <Text style={styles.limitBrandSubtitle}>More Affirmations. A Bigger You.</Text>
 
                 <View style={styles.limitHeartIcon}>
@@ -578,7 +578,7 @@ export default function AffirmationsScreen() {
                 </Text>
 
                 <View style={styles.limitOfferCard}>
-                  <Text style={styles.limitOfferTitle}>Upgrade to NextSelf Premium</Text>
+                  <Text style={styles.limitOfferTitle}>Upgrade to NexSelf Premium</Text>
                   <Text style={styles.limitOfferSubtitle}>Unlock your full potential with:</Text>
                   <View style={styles.limitFeatureRow}>
                     <View style={[styles.limitFeatureIcon, styles.limitFeatureIconPurple]}>

@@ -88,11 +88,11 @@ export default function Paywall({ featureLabel }: PaywallProps) {
                 <Ionicons name="lock-closed" size={32} color="#FFFFFF" />
               </LinearGradient>
             </View>
-            <Text style={styles.heroTitle}>Unlock Your Full NextSelf</Text>
+            <Text style={styles.heroTitle}>Unlock Your Full NexSelf</Text>
             <Text style={styles.heroSubtitle}>
               {featureLabel
                 ? `${featureLabel} is a Premium feature.`
-                : 'Premium unlocks everything NextSelf has to offer.'}
+                : 'Premium unlocks everything NexSelf has to offer.'}
             </Text>
           </View>
 
