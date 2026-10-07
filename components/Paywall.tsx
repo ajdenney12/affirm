@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -120,8 +121,9 @@ export default function Paywall({ featureLabel }: PaywallProps) {
           </View>
 
           <View style={styles.priceCard}>
+            <Text style={styles.subscriptionName}>NexSelf Premium Annual</Text>
             <Text style={styles.pricePrice}>{displayPrice}</Text>
-            <Text style={styles.pricePeriod}>per year</Text>
+            <Text style={styles.pricePeriod}>1-year subscription</Text>
             <Text style={styles.priceTrial}>{priceTrialText}</Text>
           </View>
 
@@ -154,10 +156,22 @@ export default function Paywall({ featureLabel }: PaywallProps) {
           </View>
 
           <Text style={styles.finePrint}>
-            Subscription automatically renews annually unless auto-renew is turned
-            off at least 24 hours before the end of the current period. You can
-            manage or cancel your subscription in your App Store account settings.
+            NexSelf Premium Annual is an auto-renewable subscription.{' '}
+            {isTrialEligible
+              ? `Your 7-day free trial begins now. After 7 days, your subscription automatically renews at ${displayPrice} per year unless canceled. `
+              : `Your subscription automatically renews at ${displayPrice} per year. `}
+            Auto-renewal can be turned off at least 24 hours before the end of
+            the current period. You can manage or cancel your subscription in
+            your App Store account settings.
           </Text>
+
+          <View style={styles.legalLinks}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}
+            >
+              <Text style={styles.legalLinkText}>Terms of Use</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -332,5 +346,28 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginTop: 16,
     paddingHorizontal: 8,
+  },
+
+  subscriptionName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: INK_SOFT,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 12,
+  },
+
+  legalLinkText: {
+    fontSize: 13,
+    color: PURPLE,
+    textDecorationLine: 'underline',
   },
 });
