@@ -171,6 +171,12 @@ export default function Paywall({ featureLabel }: PaywallProps) {
             >
               <Text style={styles.legalLinkText}>Terms of Use</Text>
             </TouchableOpacity>
+            <Text style={styles.legalSeparator}>|</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://www.nexwellai.com/nextself-privacy-policy')}
+            >
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </LinearGradient>
@@ -369,5 +375,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: PURPLE,
     textDecorationLine: 'underline',
+  },
+
+  legalSeparator: {
+    fontSize: 13,
+    color: INK_SOFT,
   },
 });
